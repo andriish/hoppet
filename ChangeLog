@@ -1,0 +1,46 @@
+2006-04-28  Gavin Salam  <salam@lpthe.jussieu.fr>
+
+	* switched sort.f90 to be my own version.
+  	* removed unused interpolation routines from interpolation.f90
+	
+2006-04-07  Gavin Salam  <salam@lpthe.jussieu.fr>
+
+	* Added the example_f90/small_fast_tab.f90 program to examine
+	timings and accuracies for a (by default) small tabulation.
+
+	Default parameters give 10^{-4} accuracy at 3 ms/evolution over
+	the small region (Rojo's request: 9-e3<x<0.75, Q<50). Timings
+	increase to about 8.5ms/evolution for a larger range (1e-6<x,
+	Q<14000) and I haven't checked accuracies (NB 6ms with better
+	ifort optimization). Note also that eps dependence in integrations
+	still needs to be checked.
+
+        Timings below are for small table, with default parameters (see
+	svn of this date!), on tycho and gaia (3.4GHz P4).
+	
+	                          init (s)   evln (ms)     x,Q point (mu s)
+	ifort -O                     2.2       3.0               2.8
+	ifort -O3 -axP               2.1       2.1               2.6
+        lf95 -O                      2.7       2.2               2.2 
+        gfortran -O3 -march=i686     5.9     130               180  
+	g95 -O3 -march=i686          7.8      21                22            
+	
+	* increased default interpolation order in the pdf_tabulation to 3
+	(2 was definitely too low and 4 might be better). Found that a
+	slightly small spacing than used in the f77 routine could be
+	beneficial (e.g. 0.07). NB: haven't checked correctness of results
+	with -axP on intel (there are reports [banfi] of sporadic
+	non-understood problems).
+	
+
+2006-04-06  Gavin Salam  <salam@lpthe.jussieu.fr>
+
+	Version 1.0
+	
+	* imported sources from the PDFevln package, with the addition of
+	some f77 hooks and the removal of all the main programs; also a
+	directory structure has been introduced so that the library source
+	in is src/ while the example and testing programs are in separate
+	directories.
+
+	
