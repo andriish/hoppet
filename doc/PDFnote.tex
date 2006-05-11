@@ -1,0 +1,702 @@
+\documentclass[12pt]{article}
+%%  TO DO:
+%%
+%%  Make sure hopper is replaced with final name...
+%
+% Possible names:
+%  HOAXE: High-Order Accelerated X-space Evolution
+%
+\usepackage{a4wide}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{url}
+\usepackage{xspace}
+
+\newcommand{\bq}{\boldsymbol{q}}
+\newcommand{\GeV}{\;\mathrm{GeV}}
+\newcommand{\as}{\alpha_s}
+\newcommand{\comment}[1]{\textbf{[#1]}}
+\newcommand{\eg}{e.g.\ }
+\newcommand{\hopper}{\textsc{hopper}\xspace}
+
+%-----------------------------------------
+\title{Fast $x$-space PDF evolution \\
+  a.k.a.\ HOPPERv1
+}
+\author{G.~P. Salam\\
+  LPTHE, Univerities of Paris 6 \& 7 and CNRS, Paris 75005, France.
+} 
+\date{}
+
+
+%======================================================================
+\begin{document}
+
+\maketitle 
+
+\abstract{This document describes a Fortran~95 package for carrying
+  out DGLAP evolution and other common manipulations of parton
+  distribution functions (PDFs). The PDFs are represented on a grid in
+  $x$-space so as to avoid limitations on the functional form of input
+  distributions.  Good speed and accuracy are obtained through the
+  representation of splitting functions in terms of their convolution
+  with a set of piecewise polynomial basis functions, and Runge-Kutta
+  techniques are used for the evolution in $Q$.  Unpolarised evolution
+  is provided to NNLO, including heavy-quark thresholds \comment{say
+    MSbar?}, and polarised evolution to NLO. The code is structured so
+  as to provide simple access to the objects representing splitting
+  function and PDFs, allowing a user to straightforwardly extend the
+  facilities already provided.
+  %
+  A `vanilla' interface is also available \comment{in progress},
+  facilitating use of the evolution part of the code from f77, C and
+  C++.  \smallskip
+  
+  \textbf{Note:} this document describes version~1 of the package.  A
+  substantially more object-oriented version (v2) has undergone
+  substantial development, making use of the so-called TR15581 part of
+  Fortran~2003 (allocatable arrays as part of derived types).  While
+  v2 is more flexible and structured than v1, it is also considerably
+  larger, somewhat slower, and less tolerant of all but the most
+  recent compilers. For this reason it was deemed worthwhile to
+  provide a documented version of v1.  }
+
+%----------------------------------------------------------------------
+\section{Introduction}
+\label{sec:intro}
+
+There has been considerable discussion over the past years~\cite{}, of
+numerical solutions of the DGLAP equation~\cite{DGLAP} for the
+evolution QCD parton distributions.
+
+
+The Dokshitzer-Gribov-Lipatov-Altarelli-Parisi (DGLAP) equation
+\cite{DGLAP} is a renormalisation group equation for the quantity
+$q_i(x,Q^2)$, the density of partons of type (or flavour) $i$ carrying
+a fraction $x$ of the longitudinal momentum of a hadron, when resolved
+at a scale $Q$. It is one of the fundamental equations of perturbative
+quantum chromodynamics (QCD), being central to all theoretical
+predictions for hadron-hadron and lepton-hadron colliders.
+
+Technically, it is a matrix integro-differential equation,
+\begin{equation}
+  \label{eq:dglap}
+  \frac{\partial q_i(x,Q^2)}{\partial \ln Q^2} = \int \frac{dz}{z}
+  P_{ij}(z,Q^2) q_j(x,Q^2)\,,
+\end{equation}
+whose kernel elements $P_{ij}(z,Q^2)$ are known as splitting
+functions, since they describe the splitting of a parton of kind $j$
+into a parton of kind $i$ carrying a fraction $z$ of the longitudinal
+momentum of $j$. The parton densities themselves $q_i(x,Q^2)$ are
+essentially non-perturbative, since they depend on physics at hadronic
+mass scales $\lesssim 1 \GeV$, where the QCD coupling is large. On the
+other hand the splitting functions are given by a perturbative
+expansion in the QCD coupling $\as(Q^2)$. Thus given partial
+experimental information on the parton densities\footnote{Actually it
+  is not the parton densities, but rather structure functions, which
+  can be derived from them perturbatively, that are measured
+  experimentally.} %
+--- for example over a limited range of $Q$, or for only a subset of
+parton flavours --- the DGLAP equations can be used to reconstruct the
+parton densities over the full range of $Q$ and for all flavours.
+
+The pivotal role played by the DGLAP equation has motivated a
+considerable body of literature discussing its numerical solution
+\cite{AllDGLAP}. There exist two main classes of approach: those that
+solve the equation directly in $x$-space and those that solve it for
+Mellin transforms $q_{iN}(Q^2) = \int dx x^N q_i(x,Q^2)$, of the
+parton densities and susbequently invert the transform back to
+$x$-space. The latter are of interest because the Mellin transform
+converts the convolution of eq.(\ref{eq:dglap}) into a multiplication,
+resulting in a continuum of independent matrix differential (rather
+than integro-differential) equations, one for each value of $N$,
+making the evolution very efficient numerically. The drawback of the
+method stems however from the need to know the Mellin transforms of
+both the splitting functions and the initial conditions and to a
+lesser extent subtleties associated with the inverse Mellin transform.
+
+The $x$-space method is in contrast more flexible, since the inputs
+are only required in $x$-space; however it is generally considered to
+much less efficient numerically, because of the need to carry out the
+convolution in eq.(\ref{eq:dglap}).
+
+To understand the question of efficiencies one should analyse the
+number of operations needed to carry out the...
+
+
+
+Each has advantages
+and drawbacks: the $x$-space method provides information over a range
+of $x$ values.
+
+%----------------------------------------------------------------------
+\section{Tricks}
+\label{tricks}
+
+%......................................................................
+\subsection{Higher order matrix representation}
+\label{sec:highord}
+
+This is higher-order in numerical sense, not perturbative QCD sense.
+We have a lower triangular matrix.
+
+Grid points $y_\alpha$, indicated by index $\alpha$; uniform grid
+spacing: $y_\alpha = \alpha \delta y$.
+\begin{equation}
+  q(y,t) = w_\alpha(y) q_\alpha(t)\,.
+\end{equation}
+Weights serve to interpolate: $q_\alpha = q(y_\alpha)$,
+$w_\alpha(y_\beta) = \delta_{\alpha\beta}$.
+\begin{equation}
+  (P \otimes q)_\alpha = 
+\end{equation}
+
+
+%......................................................................
+\subsection{Evolution operators}
+\label{sec:evop}
+Have
+\begin{equation}
+  \partial_t q_{\alpha}(t)  = \sum_{\beta} P_{\alpha\beta}(t) q_\beta(t)
+\end{equation}
+Introduce $M_{\alpha\beta}(t_0) = \delta_{\alpha\beta}$. Solve 
+\begin{equation}
+  \partial_t M_{\alpha\beta}(t)  = \sum_{\gamma} P_{\alpha\gamma}(t)
+  M_{\gamma\beta}(t)
+\end{equation}
+Then 
+\begin{equation}
+  q_{\alpha}(t)  = \sum_{\beta} M_{\alpha\beta}(t) q_\beta(t_0)
+\end{equation}
+If once can rewrite $P$ as $P_{\alpha\beta} = \cal P_{\alpha-\beta}$,
+then similarly one can rewrite $M_{\alpha\beta} = \cal
+M_{\alpha-\beta}$, and it is as simple to determine
+$M_{\alpha\beta}(t)$ as it is to determine the evolution of a single
+vector $q_\alpha$, i.e.\ one just evolves a single column, $\beta =
+0$, of $M_{\alpha\beta}(t)$.
+
+
+%----------------------------------------------------------------------
+\section{One-flavour problems}
+
+The software package is written in f90. This has considerable
+advantages compared to f77, as will be seen in the discussion of the
+program, though it does lack a number of fully object-oriented
+features and this sometimes restricts the scope for expressiveness.
+Fortran~90 perhaps not being the best known language in the
+high-energy community, occasionally some indications will be give to
+help the reader with less-known language constructs.
+
+
+%......................................................................
+\subsection{Grid}
+\label{sec:grid}
+
+The grid is the central element of the PDF evolution. Information
+concerning the grid is stored in a derived type \texttt{grid\_def},
+which can be initialised as follows:
+\begin{verbatim}
+  use convolution
+  type(grid_def) :: grid
+  call conv_InitGridDef(grid,dy=0.1_dp,ymax=10.0_dp,order=3)
+\end{verbatim}
+This initialises a grid between $x=1$ and down to $x =
+e^{-\texttt{ymax}}$, with grid spacing in $y = \ln 1/x$ of
+\texttt{dy}. The grid will use 3rd order interpolation.
+
+One notes the use of keyword arguments --- the keywords are not
+mandatory in this case, but have been included to improve the
+legibility. 
+
+Having defined a grid, the user need not worry about the details of
+the grid representation.
+
+In line with the convention set out in the numerical-recipes work we
+shall use \texttt{\_dp} to indicate that numbers are in double
+precision. This integer parameter is defined in the \texttt{module
+  types}.
+
+
+
+Though we work on a uniform grid in $x$-space, the aim is for as much
+of the structure as possible to be independent of the details of the
+representation.
+
+%......................................................................
+\subsection{$x$-space functions}
+\label{sec:xspc}
+
+Here we encounter our first difficulties, and departure from an
+object-oriented `ideal'. Normal $x$-space functions (such as PDFs) are
+held in double precision arrays, which are to be allocated as follows
+\begin{verbatim}
+  real(dp), pointer :: gluon(:)
+  call conv_AllocGridQuant(grid,gluon)
+\end{verbatim}
+Note that for this to work, \texttt{gluon(:)} should be a
+\texttt{pointer} not just have the \texttt{allocatable} attribute. To
+deallocate a grid quantity, one may safely use the f90
+\texttt{deallocate} command.
+
+Since \texttt{gluon(:)} is just an array, it carries no information
+about the \texttt{grid}. Therefore to set and access its value, one
+must always provide the information about the \texttt{grid}. This is
+not entirely satisfactory, and is one of the drawbacks of the use of
+f90, as will be explained later on.
+
+There are a number of ways of setting a grid quantity. Suppose we have
+a subroutine
+\begin{verbatim}
+  subroutine example_gluon(y,g)
+    use types                !! defines "dp" (double precision) kind
+    implicit none
+    real(dp), intent(in)  :: y
+    real(dp), intent(out) :: g
+    real(dp) :: x
+    
+    x = exp(-y)
+    g = 1.7_dp * x**(-0.1_dp) * (1-x)**5 
+  end subroutine example_gluon
+\end{verbatim}
+Then \comment{NOT YET IMPLEMENTED!} we can call
+\begin{verbatim}
+  call conv_InitGridQuantSub(grid,gluon,example_gluon)
+\end{verbatim}
+to initialise \texttt{gluon} with a representation of the return value
+from the subroutine \texttt{example\_gluon}. To then access the gluon
+at a given value of $y = \ln 1/x$, one procedes as follows
+\begin{verbatim}
+  real(dp) :: y, gluon_at_y
+  ...
+  y = 5.0_dp
+  gluon_at_y = conv_EvalGridQuant(grid,gluon,y)
+\end{verbatim}
+A less efficient, but perhaps more `object-oriented' way of accessing
+the gluon is via the notation \comment{make it more efficient and
+  safe: get \texttt{y.with.grid} to return a structure directly
+  containing weights?} \comment{But currently we only have .atx.}
+\begin{verbatim}
+  gluon_at_y = gluon .aty. (y.with.grid)
+\end{verbatim}
+Many of these procedures and operators are overloaded so as to work
+with higher-dimensional arrays of grid quantities, for example a
+\texttt{pdf(:,:)}. The first index will always correspond to the
+representation on the grid, while the second index would here indicate
+the flavour.
+
+Note that arithmetic operators all have higher precedence than new
+defined operators such as \texttt{.aty.}; accordingly some ways of
+writing things are more efficient than others:
+\begin{verbatim}
+  gluon_at_y = 2 * gluon .aty. (y.with.grid)   ! very inefficient
+  gluon_at_y = 2 * (gluon .aty. (y.with.grid)) ! efficient
+\end{verbatim}
+In the first case the whole of the array \texttt{gluon} is multiplied
+by 2, and then the result is evaluated at $y$, whereas in the second
+case only the result of the gluon at $y$ is multiplied by 2.
+
+%......................................................................
+\subsection{Convolution operators}
+\label{sec:conv}
+
+While it is relatively straightforward internally to represent a
+grid-quantity (e.g.\ parton distribution) as an array, for convolution
+operators, it is generally useful to have certain extra
+information. Accordingly a derived type has been defined to hold a
+convolution operator, and routines are provided for allocation and
+initialisation of splitting functions.
+\begin{verbatim}
+  type(grid_conv) :: Pgg
+  call conv_AllocGridConv(grid,Pgg)
+  call conv_InitGridConv(Pgg, Pgg_func)
+\end{verbatim}
+where the $P_{gg}$ splitting function is provided in the form of the
+function \texttt{Pgg\_func}
+\begin{verbatim}
+  ! returns various components of exp(-y) P_gg (exp(-y))
+  real(dp) function Pgg_func(y)
+    use types
+    use convolution_communicator ! provides cc_piece, and cc_REAL,...
+    use qcd                      ! provides CA, TR, nf, ...
+    implicit none
+    real(dp), intent(in) :: y
+    real(dp)             :: x
+
+    x = exp(-y); Pgg_func = zero
+    if (cc_piece == cc_DELTA) then 
+       Pgg_func = (11*CA - 4*nf*TR)/6.0_dp
+    else
+       if (cc_piece == cc_REAL .or. cc_piece == cc_REALVIRT) & 
+           & Pgg_func = 2*CA*(x/(one-x) + (one-x)/x + x*(1-x))
+       if (cc_piece == cc_VIRT .or. cc_piece == cc_REALVIRT) & 
+           & Pgg_func = Pgg_func - 2*CA*one/(one-x)
+       Pgg_func = Pgg_func * x       ! remember to return x * Pgg
+    end if
+  end function Pgg_func
+\end{verbatim}
+To address the issue that convolution operators can involve
+plus-distributions and delta functions, the module
+\texttt{convolution\_communicator} contains a variable
+\texttt{cc\_piece} which indicates which part of the splitting
+function is to be returned --- the real, virtual, real + virtual, or
+$\delta$-function pieces. Note that in all cases $P_{gg}(x)$ is to be
+returned multiplied by $x$.
+
+Having allocated and initialised a \texttt{Pgg} splitting function, we
+can go on to use it. For example 
+\begin{verbatim}
+  real(dp), pointer :: Pgg_x_gluon(:)
+  ...
+  call conv_AllocGridQuant(grid,Pgg_x_gluon)
+  Pgg_x_gluon = Pgg .conv. gluon
+\end{verbatim}  
+Since the return value of \texttt{Pgg .conv.\ gluon} is just an f90
+array, one can also write more complex expressions. Supposing we had
+defined also a \texttt{Pgq} splitting function and a singlet
+\texttt{quark} distribution, as well as $\texttt{as2pi} = \as/2\pi$,
+then to first order in $\as$ we could write the gluon evolution
+through a step \texttt{dt} in $\ln Q^2$ as
+\begin{verbatim}
+  gluon = gluon + (as2pi*dt) * ((Pgg .conv. gluon) + (Pgq .conv. quark))
+\end{verbatim}
+Note that like \texttt{.aty.}, \texttt{.conv.} has a low precedence,
+so the use of brackets is important to ensure that the above
+expressions are sensible. Alternatively, the issues of precedence can
+be addressed by using \texttt{*} (also defined as convolution when it
+appears between a splitting function and a PDF) instead of
+\texttt{.conv.}:
+\begin{verbatim}
+  gluon = gluon + (as2pi*dt) * (Pgg*gluon + Pgq*quark)
+\end{verbatim}
+
+
+\paragraph{Other operations on splitting functions}
+%
+It is marginally less simple to manipulate \texttt{grid\_conv} types
+than PDF distributions, but still fairly simple:
+
+
+
+\begin{verbatim}
+  call Alloc(grid,Pgg_sum)          ! allocate it
+  call SetToZero (Pgg_sum)          ! Pgg_sum = 0
+  call PlusEqual (Pgg_sum, Pgg1)    ! Pgg_sum = Pgg1
+  call TimesEqual(Pgg_sum, as2pi)   ! Pgg_sum = as2pi * Pgg1
+  call PlusEqual (Pgg_sum, Pgg)     ! Pgg_sum = Pgg + as2pi*Pgg1
+
+  call Scale(Pgg1,as2pi)
+  call (Pgg,Pgg1)
+\end{verbatim}
+
+\comment{These do not yet exist --- maybe they should be set up?}
+
+splitting functions than it is
+
+EXPLAIN ABOUT PUSHING LIMITS?
+
+%----------------------------------------------------------------------
+\section{Multi-flavour problems}
+\label{sec:dglapstructs}
+
+The above discussion holds for any kind of problem involving
+convolutions, even if the examples were given in the context of DGLAP
+evolution. In this section we shall examine the tools made available
+specifically to address the DGLAP evolution problem.
+
+%----------------------------------------------------------------------
+\subsection{Flavour representations}
+\label{sec:flav-repr}
+
+%----------------------------------------------------------------------
+\subsection{Splitting \comment{+coeff.fn} function matrices}
+\label{sec:splitt-funct-matr}
+
+%----------------------------------------------------------------------
+\subsection{DGLAP evolution}
+\label{sec:dglap-ev}
+
+%======================================================================
+\section{Tabulated PDFs}
+\label{sec:tabulated-pdfs}
+
+
+%======================================================================
+\section{Vanilla interface}
+\label{sec:vanilla}
+
+
+%======================================================================
+\section{Benchmarks}
+\label{sec:benchmarks}
+
+
+%======================================================================
+\appendix
+
+%======================================================================
+\section{Useful tips on fortran~95}
+
+As fortran~95's use in high-energy physics is not as widespread as
+that of other languages such as fortran~77 and C++, it is useful to
+summarise some key novelties compared to fortran~77, as well as some
+points that might otherwise cause confusion. For further information
+the reader is referred both to books about the language such as
+\cite{F95Explained} and to web resources~\cite{F95WebResources}.
+
+Fortran~90/95 allows one to package variables and subroutines into
+modules
+\begin{verbatim}
+module test_module
+  implicit none
+  integer :: some_integer
+contains
+  subroutine print_array(array)
+    integer, intent(in) :: array(:) ! size is known, first element is 1
+                                    ! intent(in) == array will not be changed
+    integer             :: i, n
+    n = size(array)
+    do i = 1, n
+      print *, i, array(i)
+    end do
+  end subroutine hello_world
+end module test_module
+\end{verbatim}
+The variable \texttt{some\_integer} and the subroutine
+\texttt{print\_array} are invisible to other routines unless they
+explicitly \texttt{use} the module as in the following example:
+\begin{verbatim}
+program test_program
+  use test_module
+  implicit none
+  integer :: array1(5), array2(-2:2)
+  integer :: i
+  
+  some_integer = 5   ! set the variable in test_module
+  array1       = 0   ! set all elements of array1 to zero
+  array2(-2:0) = 99  ! set elements 1..3 of array2 to equal to 3.
+  array2(1:2)  = 2*array2(-1:0)  ! elements -2..0 equal twice elements -1..0
+
+  print *, "Printing array 1"
+  call print_array(array1)
+  print *, "Printing array 2"
+  call print_array(array2)
+end program test_program
+\end{verbatim}
+Constants can be assigned to arrays (\texttt{array1}) or array
+subsections (\texttt{array2(-2:0)}), arrays can be assigned to arrays
+of the same size (as is done for \texttt{array2(-2:0)}) and
+mathematical operations apply to each element of the array (as with
+the multiplication by 2).
+
+When arrays are passed to function or subroutine that is defined in a
+\texttt{use}d module, information about the size of the array is
+passed along with the array itself. Note however that information
+about the lower bound is \emph{not} passed, so that for both
+\texttt{array1} and \texttt{array2}, \texttt{print\_array} will see
+arrays whose valid indices will run from $1\ldots5$. Thus the output
+from the program will be
+\begin{verbatim}
+ Printing array 1
+ 1 0
+ 2 0
+ 3 0
+ 4 0
+ 5 0
+ Printing array 2
+ 1 99
+ 2 99
+ 3 99
+ 4 198
+ 5 198
+\end{verbatim}
+If \texttt{print\_array} wants \texttt{array} to have a different lower
+bound it must specify it in the declaration, for example
+\begin{verbatim}
+  integer, intent(in) :: array(-2:) ! size is known, first element is -2
+\end{verbatim}
+While it may initially seem bizarre, there are good reasons for such
+behaviour (for example in allowing a subroutine to manipulate multiple
+arrays of the same size without having to worry about whether they all
+have the same lower bounds).
+
+One of the major additions of f95 compared to f77 is that of dynamic
+memory allocation, for example with pointers
+\begin{verbatim}
+  integer, pointer :: dynamic_array(:)
+  allocate(dynamic_array(-6:6))
+  ! .. work with it ..
+  deallocate(dynamic_array)
+\end{verbatim}
+This is fundamental to our ability to decide parameters of the PDF
+grid(s) at runtime. Pointers can be passed as arguments to subprograms.
+If the subprogram does not specify the \texttt{pointer} attribute for
+the dummy argument
+\begin{verbatim}
+subroutine xyz(dummy_array)
+  integer, intent(in) :: dummy_array(:)
+\end{verbatim}
+then everything behaves as if the argument were a normal array (\eg
+the default lower bound is $1$). Alternatively the subroutine can
+specify that it expects a pointer argument
+\begin{verbatim}
+subroutine xyz(dummy_pointer_array)
+  integer, pointer :: dummy_pointer_array(:)
+\end{verbatim}
+In this case the subroutine has the freedom to allocate and deallocate
+the array. Note also that because a pointer to the full array
+information is being passed, the lower bound of \texttt{dummy\_pointer\_array}
+is now the same as in the calling routine. Though this sounds like a
+technicality, it is important because a corollary it that a subroutine
+can allocate a dummy pointer array with bounds that are passed back to
+the calling subroutine (we need this for the flavour dimension of
+PDFs, whose lower bound is most naturally $-6$).
+
+Another feature of f95 that has been heavily used is that of derived
+types (analogous to C's \texttt{struct}):
+\begin{verbatim}
+  type pair
+    integer first, second
+  end type pair 
+\end{verbatim}
+Variables of this type can then be created and used as follows
+\begin{verbatim}
+  type(pair) :: pair_object, another_pair_object
+  pair_object%first  = 1
+  pair_object%second = 2
+  another_pair_object = pair_object
+  print *, another_pair_object%second
+\end{verbatim}
+where one sees that the entirety of the object can be copied with the
+assignment (\texttt{=}) operator. Note that many of the derived types
+used in \hopper contain pointers and when such a derived type object
+is copied, the copy's pointer just points to the same memory as the
+original object's pointer. This is sometimes what you want, but on
+other occasions will give unexpected behaviour: for example splitting
+function types are derived types containing pointers, so when you
+assign one splitting function object to another, they end up referring
+to the same memory, so if you multiply one of them by a constant, the
+other one will also be modified.
+
+While assignment behaves more or less as expected by default with
+derived types (it can actually be modified if one wants to), other
+operators do not have default definitions. So if one wants to define,
+say, a multiplication of objects one may associate a function with a
+given operator, using an interface block:
+\begin{verbatim}
+module test_module
+  interface operator(*)        ! provide access to dot_pairs through 
+    module procedure dot_pairs ! the normal multiplication symbol
+  end interface 
+  interface operator(.dot.)    ! provide acecss to dot_pairs through
+    module procedure dot_pairs ! a specially named operator
+  end interface 
+contains
+  integer function dot_pairs(pair1, pair2)
+    type(pair), intent(in) :: pair1, pair2
+    dot_pairs = pair1%first*pair2%first + pair1%second*pair2%second
+  end function dot_pairs
+end module
+\end{verbatim}
+given which we can then write
+\begin{verbatim}
+  integer    :: i
+  type(pair) :: pair1, pair2
+  [... some code to set up pair values ...]
+  ! now multiply them
+  i = pair1 * pair2
+  i = pair1 .dot. pair2  ! equivalent to previous statement
+\end{verbatim}
+Since the the multiplication operator (\texttt{*}) already exists for
+all the default types, by defining it for a new type we have
+\emph{overloaded} it. Note that there are some subtleties with
+precedences of user-defined operators: operators (like \texttt{*})
+that already exist have the same precedence as they have is usual
+operators; operators that do not exist by default (\texttt{.dot}) have
+the lowest possible preference, so, given the above definitions,
+\begin{verbatim}
+  i = 2 + pair1 * pair2       ! legal
+  i = 2 + pair1 .dot. pair2   ! illegal, means: (2+pair1).dot.pair2
+  i = 2 + (pair1 .dot. pair2) ! legal
+\end{verbatim}
+where the second line is illegal because we have not defined any
+operator for adding an integer and a pair. Similarly care is needed
+when using the \hopper's operator \texttt{.conv.}.
+
+A final point concerns floating point variable types. Throughout we
+have used definitions such as
+\begin{verbatim}
+  real(dp), pointer :: pdf(:,:)
+\end{verbatim}
+Here \texttt{dp} is an integer parameter (defined in the
+\texttt{types} module and accessible also through the
+\texttt{hopperv1} module), which specifies the \texttt{kind} of real
+that we want to define, specifically double precision. We could also
+have written \texttt{double precision} everywhere, but this is less
+compact, and the use of a kind parameter has the advantage that we
+can just modify its definition in one point in the program and the
+precision will be modified everywhere. (Well, almost, since some
+special functions are written in fortran~77 using \texttt{double
+  precision} declarations and do their numerics based on the
+assumption that that truly is the type they're dealing with).
+
+
+\paragraph{Optional and keyword arguments}
+
+%======================================================================
+\begin{thebibliography}{99}
+
+% about 1 minute at NLO.
+\bibitem{coriano} A.~Cafarella and C.~Coriano,
+%``Direct solution of renormalization group equations of QCD in x-space: NLO
+%implementations at leading twist,''
+Comput.\ Phys.\ Commun.\  {\bf 160} (2004) 213
+[arXiv:hep-ph/0311313].
+%%CITATION = HEP-PH 0311313;%%
+
+% Uses decomposition on Laguerre polynomials -- about
+% 30 of them, remains Y^2 * T method. Initialisation
+% (transform of splitting functions takes 15s on thalie)
+% (didn't try evolution; didn't check accuracy; evolution
+% times and accuracy are not mentioned; seemed fixed nf)
+\bibitem{Schoeffel:1998tz}
+L.~Schoeffel,
+%``An elegant and fast method to solve QCD evolution equations,  application to
+%the determination of the gluon content of the pomeron,''
+Nucl.\ Instrum.\ Meth.\ A {\bf 423} (1999) 439.
+%%CITATION = NUIMA,A423,439;%%
+See also \url{http://www.desy.de/~schoffel/L_qcd98.html},
+\url{http://www-spht.cea.fr/pisp/gelis/Soft/DGLAP/index.html}
+
+
+\bibitem{Weinzierl:2002mv}
+S.~Weinzierl,
+%``Fast evolution of parton distributions,''
+Comput.\ Phys.\ Commun.\  {\bf 148} (2002) 314
+[arXiv:hep-ph/0203112];
+%%CITATION = HEP-PH 0203112;%%
+%\bibitem{Roth:2004ti}
+M.~Roth and S.~Weinzierl,
+%``QED corrections to the evolution of parton distributions,''
+Phys.\ Lett.\ B {\bf 590} (2004) 190
+[arXiv:hep-ph/0403200].
+%%CITATION = HEP-PH 0403200;%%
+
+
+
+\bibitem{Pascaud:2001bi}
+C.~Pascaud and F.~Zomer,
+%``A fast and precise method to solve the Altarelli-Parisi equations in x
+%space,''
+arXiv:hep-ph/0104013.
+%%CITATION = HEP-PH 0104013;%%
+
+\bibitem{F95Explained}
+  M. Metcalf and J. Reid, \emph{Fortran 90/95 Explained}, Oxford
+  University Press, 1996.
+
+\bibitem{F95WebResources} Many introductions and tutorials about
+  fortran~90 may be found at
+  \url{http://dmoz.org/Computers/Programming/Languages/Fortran/Tutorials/Fortran_90_and_95/}
+
+\end{thebibliography}
+\end{document}
