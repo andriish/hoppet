@@ -25,6 +25,28 @@ jobs:
           cmake --install BUILD
           ctest --test-dir BUILD -j 2 --output-on-failure
 
+  compilejobFedora26:
+    name: hoppet_on_Fedora26
+    runs-on: ubuntu-latest
+    container:
+        image: fedora:26
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Install 
+      run: |
+           yum -y install  gcc gcc-c++ gcc-gfortran make wget which cmake cmake-data cmake-filesystem lhapdf lhapdf-devel
+    - name: Compile
+      run: |
+          mkdir -p BUILD
+          cd BUILD
+          cmake  ../ -DCMAKE_INSTALL_PREFIX=$(pwd)/../../INSTALL -DHOPPET_ENABLE_FPES=ON -DCMAKE_BUILD_TYPE=Debug
+          make -j
+          make install
+          ctest  -j 2 --output-on-failure
+
+
+
   compilejobOSX:
     runs-on: macos-latest
     name: hoppet_on_OSX
