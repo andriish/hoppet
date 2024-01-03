@@ -5,7 +5,7 @@
 ## cmake --install build
 ## ctest --test-dir build
 
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.9)
 # set the project name
 project(hoppet VERSION 1.3.0 LANGUAGES C CXX Fortran)
 set(hoppet_VERSION 1.3.0-devel)

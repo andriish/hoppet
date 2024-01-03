@@ -59,12 +59,23 @@ autotools scripts, you'll be disappointed here...
 
 Build with `CMake`
 ------------------
+For `cmake>3.13`
 
    mkdir build
    cmake -S . -B build <extra flags>
    cmake --build  build -j 
    cmake --install build
    ctest --test-dir build
+
+For the older versions of `cmake` 
+
+   mkdir build
+   cd build
+   cmake ../ <extra flags>
+   make  -j 
+   make install
+   ctest  build
+
 
 The extra flags might be:
 - generic `CMake` flags, e.g. `-DCMAKE_INSTALL_PREFIX=/my/home/dir`, `-DCMAKE_Fortran_COMPILER=ifort`, `-DCMAKE_Fortran_FLAGS="-O2 -g"`, etc.
