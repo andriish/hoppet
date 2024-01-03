@@ -12,8 +12,8 @@
       x = 0.99999d0
       nf = 5
 
-      call getarg(1,x_char)
-      call getarg(2,nf_char)
+      call lcl_getarg(1,x_char)
+      call lcl_getarg(2,nf_char)
 
       if(x_char.eq.'') then
          print*, 'Using default value of x            = ', x
@@ -1246,110 +1246,110 @@
 ************************************************************************
       subroutine pprinter2(na,nb)
 
-      write(11,'(''g [H('',$)')
-      call psubprint(11,na)
-      write(11,'('','',$)')
-      call psubprint(11,nb)
-      write(11,'('',y)] = H('',$)')
-      call psubprint(11,na)
-      write(11,'('','',$)')
-      call psubprint(11,nb)
-      write(11,'('',y) ; '')')
+C      write(11,'(''g [H('',$)')
+C      call psubprint(11,na)
+C      write(11,'('','',$)')
+C      call psubprint(11,nb)
+C      write(11,'('',y)] = H('',$)')
+C      call psubprint(11,na)
+C      write(11,'('','',$)')
+C      call psubprint(11,nb)
+C      write(11,'('',y) ; '')')
 
-      write(12,'(''id H('',$)')
-      call psubprint(12,na)
-      write(12,'('','',$)')
-      call psubprint(12,nb)
-      write(12,'('',y) = H[('',$)')
-      call psubprint(12,na)
-      write(12,'('','',$)')
-      call psubprint(12,nb)
-      write(12,'('',y)] ; '')')
+C      write(12,'(''id H('',$)')
+C      call psubprint(12,na)
+C      write(12,'('','',$)')
+C      call psubprint(12,nb)
+C      write(12,'('',y) = H[('',$)')
+C      call psubprint(12,na)
+C      write(12,'('','',$)')
+C      call psubprint(12,nb)
+C      write(12,'('',y)] ; '')')
 
       return
       end
 ***
       subroutine pprinter3(na,nb,nc)
 
-      write(11,'(''g [H('',$)')
-      call psubprint(11,na)
-      write(11,'('','',$)')
-      call psubprint(11,nb)
-      write(11,'('','',$)')
-      call psubprint(11,nc)
-      write(11,'('',y)] = H('',$)')
-      call psubprint(11,na)
-      write(11,'('','',$)')
-      call psubprint(11,nb)
-      write(11,'('','',$)')
-      call psubprint(11,nc)
-      write(11,'('',y) ; '')')
+C      write(11,'(''g [H('',$)')
+C      call psubprint(11,na)
+C      write(11,'('','',$)')
+C      call psubprint(11,nb)
+C      write(11,'('','',$)')
+C      call psubprint(11,nc)
+C      write(11,'('',y)] = H('',$)')
+C      call psubprint(11,na)
+C      write(11,'('','',$)')
+C      call psubprint(11,nb)
+C      write(11,'('','',$)')
+C      call psubprint(11,nc)
+C      write(11,'('',y) ; '')')
 
-      write(12,'(''id H('',$)')
-      call psubprint(12,na)
-      write(12,'('','',$)')
-      call psubprint(12,nb)
-      write(12,'('','',$)')
-      call psubprint(12,nc)
-      write(12,'('',y) = H[('',$)')
-      call psubprint(12,na)
-      write(12,'('','',$)')
-      call psubprint(12,nb)
-      write(12,'('',y)] ; '')')
+C      write(12,'(''id H('',$)')
+C      call psubprint(12,na)
+C      write(12,'('','',$)')
+C      call psubprint(12,nb)
+C      write(12,'('','',$)')
+C      call psubprint(12,nc)
+C      write(12,'('',y) = H[('',$)')
+C      call psubprint(12,na)
+C      write(12,'('','',$)')
+C      call psubprint(12,nb)
+C      write(12,'('',y)] ; '')')
 
       return
       end
 ***
       subroutine pprinter4(na,nb,nc,nd)
 
-      write(11,'(''g [H('',$)')
-      call psubprint(11,na)
-      write(11,'('','',$)')
-      call psubprint(11,nb)
-      write(11,'('','',$)')
-      call psubprint(11,nc)
-      write(11,'('','',$)')
-      call psubprint(11,nd)
-      write(11,'('',y)] = H('',$)')
-      call psubprint(11,na)
-      write(11,'('','',$)')
-      call psubprint(11,nb)
-      write(11,'('','',$)')
-      call psubprint(11,nc)
-      write(11,'('','',$)')
-      call psubprint(11,nd)
-      write(11,'('',y) ; '')')
+C      write(11,'(''g [H('',$)')
+C      call psubprint(11,na)
+C      write(11,'('','',$)')
+C      call psubprint(11,nb)
+C      write(11,'('','',$)')
+C      call psubprint(11,nc)
+C      write(11,'('','',$)')
+C      call psubprint(11,nd)
+C      write(11,'('',y)] = H('',$)')
+C      call psubprint(11,na)
+C      write(11,'('','',$)')
+C      call psubprint(11,nb)
+C      write(11,'('','',$)')
+C      call psubprint(11,nc)
+C      write(11,'('','',$)')
+C      call psubprint(11,nd)
+C      write(11,'('',y) ; '')')
 
-      write(12,'(''id H('',$)')
-      call psubprint(12,na)
-      write(12,'('','',$)')
-      call psubprint(12,nb)
-      write(12,'('','',$)')
-      call psubprint(12,nc)
-      write(12,'('','',$)')
-      call psubprint(12,nd)
-      write(12,'('',y) = H[('',$)')
-      call psubprint(12,na)
-      write(12,'('','',$)')
-      call psubprint(12,nb)
-      write(12,'('','',$)')
-      call psubprint(12,nc)
-      write(12,'('','',$)')
-      call psubprint(12,nd)
-      write(12,'('',y)] ; '')')
+C      write(12,'(''id H('',$)')
+C      call psubprint(12,na)
+C      write(12,'('','',$)')
+C      call psubprint(12,nb)
+C      write(12,'('','',$)')
+C      call psubprint(12,nc)
+C      write(12,'('','',$)')
+C      call psubprint(12,nd)
+C      write(12,'('',y) = H[('',$)')
+C      call psubprint(12,na)
+C      write(12,'('','',$)')
+C      call psubprint(12,nb)
+C      write(12,'('','',$)')
+C      call psubprint(12,nc)
+C      write(12,'('','',$)')
+C      call psubprint(12,nd)
+C      write(12,'('',y)] ; '')')
 
       return
       end
 ***
       subroutine psubprint(n,na)
-      if ( na.lt.0 ) then
-        write (n,102) na
-      else
-        write (n,101) na
-      endif
-      return
-  101 format(i1,$)
-  102 format(i2,$)
+C      if ( na.lt.0 ) then
+C        write (n,102) na
+C      else
+C        write (n,101) na
+C      endif
+C      return
+C 101 format(i1,$)
+C  102 format(i2,$)
       end
 
 
