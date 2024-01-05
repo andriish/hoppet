@@ -155,10 +155,10 @@ jobs:
           cd work
           ls /opt/arm
           export PATH=/opt/arm/bin:$PATH
-          cmake3 -S . -B BUILDarmflang -DCMAKE_Fortran_COMPILER=armflang -DCMAKE_INSTALL_PREFIX=$(pwd)/../INSTALLarmflang
-          cmake3 --build BUILDarmflang -j
-          cmake3 --install BUILDarmflang
-          ctest3 --test-dir BUILDarmflang -j 2 --output-on-failure
+          cmake -S . -B BUILDarmflang -DCMAKE_Fortran_COMPILER=armflang -DCMAKE_INSTALL_PREFIX=$(pwd)/../INSTALLarmflang
+          cmake --build BUILDarmflang -j
+          cmake --install BUILDarmflang
+          ctest --test-dir BUILDarmflang -j 2 --output-on-failure
 
 
   compilejobOSX:
