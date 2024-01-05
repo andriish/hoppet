@@ -8,7 +8,7 @@ on:
 
 jobs:
   compilejobFedora:
-    name: hoppet_on_Fedora
+    name: Fedorax86_64_GNU
     runs-on: ubuntu-latest
     container:
         image: fedora:latest
@@ -27,7 +27,7 @@ jobs:
 
 
   compilejob:
-    name: hoppet_on_Rocky9_Intel_HPCKIT
+    name: Rocky9x86_64_Intel_HPCKIT
     runs-on: ubuntu-latest
     container:
         image: intel/oneapi-hpckit:2024.0.1-devel-rockylinux9
@@ -52,7 +52,7 @@ jobs:
           ctest --test-dir BUILDifort -j 2 --output-on-failure
 
   compilejobFedora_AOCC:
-    name: hoppet_on_Fedora_AOCC
+    name: Fedorax86_64_AOCC
     runs-on: ubuntu-latest
     container:
         image: fedora:latest
@@ -71,7 +71,7 @@ jobs:
           path: BUILD/example_f*/*.this_output
 
   compilejobRocky8_NVHPC:
-    name: hoppet_on_Rocky8_NVHPC
+    name: Rocky8x86_64_NVHPC
     runs-on: ubuntu-latest
     container:
         image: nvcr.io/nvidia/nvhpc:23.11-devel-cuda12.3-rockylinux8
@@ -95,7 +95,7 @@ jobs:
           path: BUILD/example_f*/*.this_output
 
   compilejobCentos7_IBM_XL:
-    name: hoppet_on_Centos7ppc64le_IBM_XL
+    name: Centos7ppc64le_IBM_XL
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -130,7 +130,7 @@ jobs:
 
   compilejobOSX:
     runs-on: macos-latest
-    name: hoppet_on_OSX
+    name: OSXx86_64
     steps:
     - name: Checkout
       uses: actions/checkout@v3
