@@ -149,8 +149,8 @@ jobs:
           yum -y install epel-release wget
           wget -q https://armkeil.blob.core.windows.net/developer/Files/downloads/hpc/arm-compiler-for-linux/23-10/arm-compiler-for-linux_23.10_RHEL-9_aarch64.tar
           tar -xvf arm-compiler-for-linux_23.10_RHEL-9_aarch64.tar
-          cd arm-compiler-for-linux_23.10_RHEL-9_aarch64
-          sudo ./arm-compiler-for-linux_23.10_RHEL-9_aarch64.sh -a
+          cd arm-compiler-for-linux_23.10_RHEL-9
+          sh ./arm-compiler-for-linux_23.10_RHEL-9.sh -a
           cd ..
           cd work
           ls /opt/arm
