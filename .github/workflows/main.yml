@@ -128,9 +128,44 @@ jobs:
           cmake3 --install BUILDxlf
           ctest3 --test-dir BUILDxlf -j 2 --output-on-failure
 
+
+  compilejobRocky9_ARM:
+    name: Rocky9aarch64_ARM
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: QEMU
+      run: |
+           set -x
+           sudo apt update
+           sudo  apt install --yes binfmt-support qemu-user-static wget
+    - name: Compile_with_arm
+      uses: addnab/docker-run-action@v3
+      with:
+        image: arm64v8/rockylinux
+        options: -v ${{ github.workspace }}:/work --platform=linux/arm64v8
+        run: |
+          sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
+          sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
+          yum -y install epel-release wget
+          wget https://armkeil.blob.core.windows.net/developer/Files/downloads/hpc/arm-compiler-for-linux/23-10/arm-compiler-for-linux_23.10_RHEL-9_aarch64.tar
+          tar -xvf arm-compiler-for-linux_23.10_RHEL-9_aarch64.tar
+          cd arm-compiler-for-linux_23.10_RHEL-9_aarch64
+          sudo ./arm-compiler-for-linux_23.10_RHEL-9_aarch64.sh -a
+          cd ..
+          cd work
+          ls /opt/arm
+          export PATH=/opt/arm/bin:$PATH
+          cmake3 -S . -B BUILDarmflang -DCMAKE_Fortran_COMPILER=armflang -DCMAKE_INSTALL_PREFIX=$(pwd)/../INSTALLarmflang
+          cmake3 --build BUILDarmflang -j
+          cmake3 --install BUILDarmflang
+          ctest3 --test-dir BUILDarmflang -j 2 --output-on-failure
+
+
   compilejobOSX:
     runs-on: macos-latest
-    name: OSXx86_64
+    name: OSXx86_64_GNU
     steps:
     - name: Checkout
       uses: actions/checkout@v3

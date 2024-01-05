@@ -76,6 +76,13 @@ if (${CMAKE_Fortran_COMPILER_ID} MATCHES "NAG")
   set(CMAKE_Fortran_FLAGS_DEBUG  "${CMAKE_Fortran_FLAGS_DEBUG} -g -C=all -mtrace -gline")
 endif()
 
+#ARM 
+#add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,ARM>:-dcfuns;-dusty>")
+if (${CMAKE_Fortran_COMPILER_ID} MATCHES "ARM")
+  set(CMAKE_Fortran_FLAGS_DEBUG  "${CMAKE_Fortran_FLAGS_DEBUG} -g")
+endif()
+
+
 if (HOPPET_ENABLE_FPES)
   add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-ffpe-trap=zero,overflow,underflow,invalid,denormal>")
   add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,Intel>:-fpe0>")
@@ -84,6 +91,7 @@ if (HOPPET_ENABLE_FPES)
   add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,Flang>:-ffp-exception-behavior=strict>")
   add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,XL>:-qflttrap=overflow:underflow:invalid:zerodivide:enable>")
   add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,NAG>:-ieee=stop>")
+  add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,ARM>:-ffp-contract=on>")
 endif()
 
 
