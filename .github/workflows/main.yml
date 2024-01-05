@@ -146,10 +146,8 @@ jobs:
         image: arm64v8/rockylinux:9
         options: -v ${{ github.workspace }}:/work --platform=linux/arm64/v8
         run: |
-          sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
-          sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
           yum -y install epel-release wget
-          wget https://armkeil.blob.core.windows.net/developer/Files/downloads/hpc/arm-compiler-for-linux/23-10/arm-compiler-for-linux_23.10_RHEL-9_aarch64.tar
+          wget -q https://armkeil.blob.core.windows.net/developer/Files/downloads/hpc/arm-compiler-for-linux/23-10/arm-compiler-for-linux_23.10_RHEL-9_aarch64.tar
           tar -xvf arm-compiler-for-linux_23.10_RHEL-9_aarch64.tar
           cd arm-compiler-for-linux_23.10_RHEL-9_aarch64
           sudo ./arm-compiler-for-linux_23.10_RHEL-9_aarch64.sh -a
