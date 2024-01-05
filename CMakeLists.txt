@@ -70,6 +70,11 @@ if (${CMAKE_Fortran_COMPILER_ID} MATCHES "Flang")
   set(CMAKE_Fortran_FLAGS_DEBUG  "${CMAKE_Fortran_FLAGS_DEBUG} -g")
 endif()
 
+# NAG
+add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,NAG>:-dcfuns;-dusty>")
+if (${CMAKE_Fortran_COMPILER_ID} MATCHES "NAG")
+  set(CMAKE_Fortran_FLAGS_DEBUG  "${CMAKE_Fortran_FLAGS_DEBUG} -g -C=all -mtrace -gline")
+endif()
 
 if (HOPPET_ENABLE_FPES)
   add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-ffpe-trap=zero,overflow,underflow,invalid,denormal>")
@@ -78,6 +83,7 @@ if (HOPPET_ENABLE_FPES)
   add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:-Ktrap=divz,denorm,fp,inexact,inv,ovf,unf>")
   add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,Flang>:-ffp-exception-behavior=strict>")
   add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,XL>:-qflttrap=overflow:underflow:invalid:zerodivide:enable>")
+  add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,NAG>:-ieee=stop>")
 endif()
 
 
@@ -168,6 +174,12 @@ add_library(hoppet::hoppet_static ALIAS hoppet_static)
 
 # Examples =============================================================
 if (HOPPET_BUILD_EXAMPLES)
+  if (${CMAKE_Fortran_COMPILER_ID} MATCHES "NAG" )
+    set( depcode benchmarking/lcl_dec_NAG.f90)
+  else()
+    set( depcode benchmarking/lcl_dec.f90)
+  endif()
+
   set( f90programs_f90 
                    structure_functions_example  
                    tabulation_example_2                  
@@ -180,7 +192,7 @@ if (HOPPET_BUILD_EXAMPLES)
        )
   set( f90programs_f hplog5_tests )
   foreach ( p ${f90programs_f90})
-    add_executable( ${p}_f90 example_f90/${p}.f90)
+    add_executable( ${p}_f90 example_f90/${p}.f90 ${depcode})
     target_link_libraries(${p}_f90 PUBLIC hoppet::hoppet_static)
     set_target_properties(${p}_f90 PROPERTIES OUTPUT_NAME ${p}
       RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/example_f90/
@@ -189,7 +201,7 @@ if (HOPPET_BUILD_EXAMPLES)
      )
   endforeach()
   foreach ( p ${f90programs_f})
-    add_executable( ${p}_f90 example_f90/${p}.f)
+    add_executable( ${p}_f90 example_f90/${p}.f ${depcode})
     target_link_libraries(${p}_f90 PUBLIC hoppet::hoppet_static)
     set_target_properties(${p}_f90 PROPERTIES OUTPUT_NAME ${p}
       RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/example_f90/
@@ -208,7 +220,7 @@ if (HOPPET_BUILD_EXAMPLES)
  endif()
  set( f77programs_c cpp_structure_functions_example  cpp_tabulation_example_qed cpp_tabulation_example )
   foreach ( p ${f77programs_f})
-    add_executable( ${p}_f77 example_f77/${p}.f)
+    add_executable( ${p}_f77 example_f77/${p}.f ${depcode})
     target_link_libraries(${p}_f77 PUBLIC hoppet::hoppet_static)
     set_target_properties(${p}_f77 PROPERTIES  OUTPUT_NAME ${p} 
       RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/example_f77/
@@ -246,7 +258,7 @@ endif()
 if (HOPPET_BUILD_BENCHMARK)
   set( bms benchmark prec_and_timing structure_functions_benchmark_checks) 
   foreach ( b ${bms})
-    add_executable( ${b} benchmarking/${b}.f90 benchmarking/io_utils.f90 benchmarking/lcl_dec.f90 benchmarking/NameSelect.f90)
+    add_executable( ${b} benchmarking/${b}.f90 benchmarking/io_utils.f90 ${depcode} benchmarking/NameSelect.f90)
     target_link_libraries(${b} PUBLIC hoppet::hoppet_static)
     set_target_properties(${b} PROPERTIES  OUTPUT_NAME ${b}
       RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/benchmarking/
