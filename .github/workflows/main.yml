@@ -144,7 +144,7 @@ jobs:
       uses: addnab/docker-run-action@v3
       with:
         image: arm64v8/rockylinux:9
-        options: -v ${{ github.workspace }}:/work --platform=linux/arm64v8
+        options: -v ${{ github.workspace }}:/work --platform=linux/arm64/v8
         run: |
           sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
           sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
