@@ -56,6 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
         image: fedora:latest
+    steps:
     - name: Install 
       run: |
            yum -y install  gcc gcc-c++ make wget which cmake cmake-data cmake-filesystem lhapdf lhapdf-devel libquadmath-devel libquadmath
