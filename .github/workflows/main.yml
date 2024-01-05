@@ -51,8 +51,6 @@ jobs:
           cmake --install BUILDifort
           ctest --test-dir BUILDifort -j 2 --output-on-failure
 
-
-<<<<<<< HEAD
   compilejobFedora_AOCC:
     name: hoppet_on_Fedora_AOCC
     runs-on: ubuntu-latest
