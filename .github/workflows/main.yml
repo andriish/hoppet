@@ -147,7 +147,7 @@ jobs:
         options: -v ${{ github.workspace }}:/work --platform=linux/arm64/v8
         run: |
           yum -y install epel-release wget 
-          yum -y install procps  lhapdf-devel wget glibc-devel cmake
+          yum -y install procps  lhapdf-devel wget glibc-devel cmake environment-modules
           wget -q https://armkeil.blob.core.windows.net/developer/Files/downloads/hpc/arm-compiler-for-linux/23-10/arm-compiler-for-linux_23.10_RHEL-9_aarch64.tar
           tar -xvf arm-compiler-for-linux_23.10_RHEL-9_aarch64.tar
           cd arm-compiler-for-linux_23.10_RHEL-9
