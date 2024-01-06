@@ -57,6 +57,8 @@ jobs:
     container:
         image: fedora:latest
     steps:
+    - name: Checkout
+      uses: actions/checkout@v3    
     - name: Install 
       run: |
            yum -y install  gcc gcc-c++ make wget which cmake cmake-data cmake-filesystem lhapdf lhapdf-devel libquadmath-devel libquadmath
@@ -64,10 +66,8 @@ jobs:
     - name: Compile
       continue-on-error: true    
       run: |
-           ls 
            source /opt/AMD/aocc-compiler-4.1.0/setenv_AOCC.sh 
            export PATH=$PATH:/opt/AMD/aocc-compiler-4.1.0/bin/ 
-           ls 
            cmake -S . -B BUILD  -DCMAKE_Fortran_COMPILER=flang -DCMAKE_INSTALL_PREFIX=$(pwd)/../INSTALL
            cmake --build BUILD -j
            cmake --install BUILD
