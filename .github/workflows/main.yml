@@ -64,13 +64,15 @@ jobs:
     - name: Compile
       continue-on-error: true    
       run: |
-          source /opt/AMD/aocc-compiler-4.1.0/setenv_AOCC.sh
-          export PATH=$PATH:/opt/AMD/aocc-compiler-4.1.0/bin/
-          ls 
-          cmake -S . -B BUILD  -DCMAKE_Fortran_COMPILER=flang -DCMAKE_INSTALL_PREFIX=$(pwd)/../INSTALL
-          cmake --build BUILD -j
-          cmake --install BUILD
-          ctest --test-dir BUILD -j 2 --output-on-failure
+           ls 
+           source /opt/AMD/aocc-compiler-4.1.0/setenv_AOCC.sh 
+           export PATH=$PATH:/opt/AMD/aocc-compiler-4.1.0/bin/ 
+           ls 
+           cmake -S . -B BUILD  -DCMAKE_Fortran_COMPILER=flang -DCMAKE_INSTALL_PREFIX=$(pwd)/../INSTALL
+           cmake --build BUILD -j
+           cmake --install BUILD
+           ctest --test-dir BUILD -j 2 --output-on-failure
+
     - uses: actions/upload-artifact@v4
       with:
           name: AOCC
