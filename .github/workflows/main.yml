@@ -152,10 +152,11 @@ jobs:
           tar -xvf arm-compiler-for-linux_23.10_RHEL-9_aarch64.tar
           cd arm-compiler-for-linux_23.10_RHEL-9
           sh ./arm-compiler-for-linux_23.10_RHEL-9.sh -a
+          source /etc/profile.d/modules.sh
+          export MODULEPATH=$MODULEPATH:/opt/arm/modulefiles/
+          module load acfl/23.10
           cd ..
           cd work
-          ls /opt/arm
-          export PATH=/opt/arm/bin:$PATH
           cmake -S . -B BUILDarmflang -DCMAKE_Fortran_COMPILER=armflang -DCMAKE_INSTALL_PREFIX=$(pwd)/../INSTALLarmflang
           cmake --build BUILDarmflang -j
           cmake --install BUILDarmflang
