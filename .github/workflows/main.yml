@@ -147,7 +147,7 @@ jobs:
         options: -v ${{ github.workspace }}:/work --platform=linux/arm64/v8
         run: |
           yum -y install epel-release wget 
-          yum -y install procps  lhapdf-devel wget glibc-devel cmake environment-modules
+          yum -y install procps  lhapdf-devel wget glibc-devel cmake environment-modules which
           wget -q https://armkeil.blob.core.windows.net/developer/Files/downloads/hpc/arm-compiler-for-linux/23-10/arm-compiler-for-linux_23.10_RHEL-9_aarch64.tar
           tar -xvf arm-compiler-for-linux_23.10_RHEL-9_aarch64.tar
           cd arm-compiler-for-linux_23.10_RHEL-9
@@ -155,13 +155,17 @@ jobs:
           source /etc/profile.d/modules.sh
           export MODULEPATH=$MODULEPATH:/opt/arm/modulefiles/
           module load acfl/23.10
+          module load gnu/12.2.0
           cd ..
           cd work
           cmake -S . -B BUILDarmflang -DCMAKE_Fortran_COMPILER=armflang -DCMAKE_INSTALL_PREFIX=$(pwd)/../INSTALLarmflang
           cmake --build BUILDarmflang -j
           cmake --install BUILDarmflang
           ctest --test-dir BUILDarmflang -j 2 --output-on-failure
-
+    - uses: actions/upload-artifact@v4
+      with:
+          name: ARM
+          path: BUILDarmflang/example_f*/*.this_output
 
   compilejobOSX:
     runs-on: macos-latest
