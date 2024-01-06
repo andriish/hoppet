@@ -69,6 +69,10 @@ jobs:
           cmake -S . -B BUILD  -DCMAKE_Fortran_COMPILER=flang -DCMAKE_INSTALL_PREFIX=$(pwd)/../INSTALL
           name: AOCC
           path: BUILD/example_f*/*.this_output
+    - uses: actions/upload-artifact@v4
+      with:
+          name: AOCC
+          path: BUILD/example_f*/*.this_output
 
   compilejobRocky8_NVHPC:
     name: Rocky8x86_64_NVHPC
