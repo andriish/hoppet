@@ -165,7 +165,6 @@ add_library(hoppet::hoppet_static ALIAS hoppet_static)
 
 # Examples =============================================================
 if (HOPPET_BUILD_EXAMPLES)
-  set( depcode benchmarking/lcl_dec.f90)
   set( f90programs_f90 
                    structure_functions_example  
                    tabulation_example_2                  
@@ -178,7 +177,7 @@ if (HOPPET_BUILD_EXAMPLES)
        )
   set( f90programs_f hplog5_tests )
   foreach ( p ${f90programs_f90})
-    add_executable( ${p}_f90 example_f90/${p}.f90 ${depcode})
+    add_executable( ${p}_f90 example_f90/${p}.f90)
     target_link_libraries(${p}_f90 PUBLIC hoppet::hoppet_static)
     set_target_properties(${p}_f90 PROPERTIES OUTPUT_NAME ${p}
       RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/example_f90/
@@ -187,7 +186,7 @@ if (HOPPET_BUILD_EXAMPLES)
      )
   endforeach()
   foreach ( p ${f90programs_f})
-    add_executable( ${p}_f90 example_f90/${p}.f ${depcode})
+    add_executable( ${p}_f90 example_f90/${p}.f)
     target_link_libraries(${p}_f90 PUBLIC hoppet::hoppet_static)
     set_target_properties(${p}_f90 PROPERTIES OUTPUT_NAME ${p}
       RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/example_f90/
@@ -206,7 +205,7 @@ if (HOPPET_BUILD_EXAMPLES)
  endif()
  set( f77programs_c cpp_structure_functions_example  cpp_tabulation_example_qed cpp_tabulation_example )
   foreach ( p ${f77programs_f})
-    add_executable( ${p}_f77 example_f77/${p}.f ${depcode})
+    add_executable( ${p}_f77 example_f77/${p}.f)
     target_link_libraries(${p}_f77 PUBLIC hoppet::hoppet_static)
     set_target_properties(${p}_f77 PROPERTIES  OUTPUT_NAME ${p} 
       RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/example_f77/
@@ -244,7 +243,7 @@ endif()
 if (HOPPET_BUILD_BENCHMARK)
   set( bms benchmark prec_and_timing structure_functions_benchmark_checks) 
   foreach ( b ${bms})
-    add_executable( ${b} benchmarking/${b}.f90 benchmarking/io_utils.f90 ${depcode} benchmarking/NameSelect.f90)
+    add_executable( ${b} benchmarking/${b}.f90 benchmarking/io_utils.f90 benchmarking/lcl_dec.f90 benchmarking/NameSelect.f90)
     target_link_libraries(${b} PUBLIC hoppet::hoppet_static)
     set_target_properties(${b} PROPERTIES  OUTPUT_NAME ${b}
       RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/benchmarking/
