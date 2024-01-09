@@ -51,11 +51,6 @@ jobs:
           cmake --install BUILDifort
           ctest --test-dir BUILDifort -j 2 --output-on-failure
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-
->>>>>>> AMD2
   compilejobFedora_AOCC:
     name: Fedorax86_64_AOCC
     runs-on: ubuntu-latest
