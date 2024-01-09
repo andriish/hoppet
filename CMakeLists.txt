@@ -165,12 +165,7 @@ add_library(hoppet::hoppet_static ALIAS hoppet_static)
 
 # Examples =============================================================
 if (HOPPET_BUILD_EXAMPLES)
-  if (${CMAKE_Fortran_COMPILER_ID} MATCHES "NAG" )
-    set( depcode benchmarking/lcl_dec_NAG.f90)
-  else()
-    set( depcode benchmarking/lcl_dec.f90)
-  endif()
-
+  set( depcode benchmarking/lcl_dec.f90)
   set( f90programs_f90 
                    structure_functions_example  
                    tabulation_example_2                  
