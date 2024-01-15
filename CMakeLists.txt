@@ -53,21 +53,8 @@ add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:-Minform=warn;>")
 add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:-Mnofpapprox>")
 add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:-target=multicore;-stdpar=multicore>")
 if (${CMAKE_Fortran_COMPILER_ID} MATCHES "NVHPC")
+  message(WARNING "HOPPET: ${CMAKE_Fortran_COMPILER_ID} compiler might contain bugs that will prevent HOPPET from working  correctly. Please see https://fortran-lang.discourse.group/t/an-interesting-difference-between-compilers/7131 for details")
   set(CMAKE_Fortran_FLAGS_DEBUG  "${CMAKE_Fortran_FLAGS_DEBUG} -g -traceback -Mbounds -Mchkptr")
-endif()
-
-# XL
-add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,XL>:-qfree;-qextname;-qhalt=s>")
-add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,XL>:-qstackprotect=all>")
-
-if (${CMAKE_Fortran_COMPILER_ID} MATCHES "XL")
-  set(CMAKE_Fortran_FLAGS_DEBUG  "${CMAKE_Fortran_FLAGS_DEBUG} -g -qcheck -qsigtrap")
-endif()
-
-# AMD Flang
-add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,Flang>:-Wall>")
-if (${CMAKE_Fortran_COMPILER_ID} MATCHES "Flang")
-  set(CMAKE_Fortran_FLAGS_DEBUG  "${CMAKE_Fortran_FLAGS_DEBUG} -g")
 endif()
 
 # NAG
@@ -76,9 +63,24 @@ if (${CMAKE_Fortran_COMPILER_ID} MATCHES "NAG")
   set(CMAKE_Fortran_FLAGS_DEBUG  "${CMAKE_Fortran_FLAGS_DEBUG} -g -C=all -mtrace -gline")
 endif()
 
-#ARM 
-#add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,ARM>:-dcfuns;-dusty>")
+# IBM XL
+add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,XL>:-qfree;-qextname;-qhalt=s>")
+add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,XL>:-qstackprotect=all>")
+if (${CMAKE_Fortran_COMPILER_ID} MATCHES "XL")
+  message(WARNING "HOPPET: ${CMAKE_Fortran_COMPILER_ID} compiler might contain bugs that will prevent HOPPET from working  correctly. Please see https://fortran-lang.discourse.group/t/an-interesting-difference-between-compilers/7131 for details")
+  set(CMAKE_Fortran_FLAGS_DEBUG  "${CMAKE_Fortran_FLAGS_DEBUG} -g -qcheck -qsigtrap")
+endif()
+
+# AMD Flang
+add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,Flang>:-Wall>")
+if (${CMAKE_Fortran_COMPILER_ID} MATCHES "Flang")
+  message(WARNING "HOPPET: ${CMAKE_Fortran_COMPILER_ID} compiler might contain bugs that will prevent HOPPET from working  correctly. Please see https://fortran-lang.discourse.group/t/an-interesting-difference-between-compilers/7131 for details")
+  set(CMAKE_Fortran_FLAGS_DEBUG  "${CMAKE_Fortran_FLAGS_DEBUG} -g")
+endif()
+
+# ARM 
 if (${CMAKE_Fortran_COMPILER_ID} MATCHES "ARM")
+  message(WARNING "HOPPET: ${CMAKE_Fortran_COMPILER_ID} compiler might contain bugs that will prevent HOPPET from working  correctly. Please see https://fortran-lang.discourse.group/t/an-interesting-difference-between-compilers/7131 for details")
   set(CMAKE_Fortran_FLAGS_DEBUG  "${CMAKE_Fortran_FLAGS_DEBUG} -g")
 endif()
 
@@ -87,9 +89,9 @@ if (HOPPET_ENABLE_FPES)
   add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,Intel>:-fpe0>")
   add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,IntelLLVM>:-fpe0>")
   add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:-Ktrap=divz,denorm,fp,inexact,inv,ovf,unf>")
-  add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,Flang>:-ffp-exception-behavior=strict>")
-  add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,XL>:-qflttrap=overflow:underflow:invalid:zerodivide:enable>")
   add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,NAG>:-ieee=stop>")
+  add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,XL>:-qflttrap=overflow:underflow:invalid:zerodivide:enable>")
+  add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,Flang>:-ffp-exception-behavior=strict>")
   add_compile_options("$<$<COMPILE_LANG_AND_ID:Fortran,ARM>:-ffp-contract=on>")
 endif()
 
@@ -197,7 +199,7 @@ if (HOPPET_BUILD_EXAMPLES)
                    tabulation_example_qed  
                    tabulation_example_streamlined
        )
-  set( f90programs_f hplog5_tests )
+  set( f90programs_f )
   foreach ( p ${f90programs_f90})
     add_executable( ${p}_f90 example_f90/${p}.f90 ${depcode})
     target_link_libraries(${p}_f90 PUBLIC hoppet::hoppet_static)
