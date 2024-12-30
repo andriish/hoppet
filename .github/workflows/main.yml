@@ -59,32 +59,57 @@ jobs:
 
 
 
-  compilejobFedorax86_64_GNU:
-    name: Fedorax86_64_GNU
+  compilejobFedora41x86_64_LFortran:
+    name: Fedora41x86_64_LFortran
     runs-on: ubuntu-latest
     container:
-        image: fedora:latest
+        image: fedora:41
     steps:
     - name: Checkout
       uses: actions/checkout@v3
     - name: Install 
       run: |
+           dnf -y install dnf* lfortran clang
            yum -y install  gcc gcc-c++ gcc-gfortran make wget which cmake cmake-data cmake-filesystem lhapdf lhapdf-devel
     - name: Compile
       run: |
+            lfortran --version
+            lfortran cmake/Tests/array_bound_bug.f90 -o array_bound_bug.exe
+            ./array_bound_bug.exe
+
+  compilejobRocky9x86_64_GNU:
+    name: rockylinux9x86_64_GNU
+    runs-on: ubuntu-latest
+    container:
+        image: rockylinux:9
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Install 
+      run: |
+           dnf -y install dnf*
+           dnf -y config-manager --set-enabled crb
+           dnf -y install epel-release
+           yum -y install  gcc gcc-c++ gcc-gfortran make wget which cmake cmake-data cmake-filesystem lhapdf lhapdf-devel
+    - name: Compile
+      run: |
+          set -e      
           cmake -S . -B BUILD -DCMAKE_INSTALL_PREFIX=$(pwd)/../INSTALL -DHOPPET_ENABLE_FPES=ON -DCMAKE_BUILD_TYPE=Debug
           cmake --build BUILD -j
           cmake --install BUILD
           ctest --test-dir BUILD -j 2 --output-on-failure
 
-  compilejobFedorax86_64_Intel_HPCKIT:
-    name: Fedorax86_64_Intel_HPCKIT
+  compilejobRocky9x86_64_Intel_HPCKIT:
+    name: rockylinux9x86_64_Intel_HPCKIT
     runs-on: ubuntu-latest
-    container: fedora:latest
+    container: rockylinux:9
     steps:
     - uses: actions/checkout@v3
     - name: Install
       run: |
+             dnf -y install dnf*
+             dnf -y config-manager --set-enabled crb
+             dnf -y install epel-release      
              dnf -y install findutils procps gcc gcc-c++ gcc-gfortran make wget which cmake cmake-data cmake-filesystem lhapdf lhapdf-devel
              tee > /tmp/oneAPI.repo << EOF
              [oneAPI]
@@ -95,13 +120,14 @@ jobs:
              repo_gpgcheck=1
              gpgkey=https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
              EOF
-             sudo mv /tmp/oneAPI.repo /etc/yum.repos.d/
+             mv /tmp/oneAPI.repo /etc/yum.repos.d/
              dnf -y clean all
              dnf -y install  intel-oneapi-compiler-dpcpp-cpp intel-oneapi-compiler-fortran
              source /opt/intel/oneapi/compiler/latest/env/vars.sh
     - name: Compile_with_ifx
       run: |
           source /opt/intel/oneapi/compiler/latest/env/vars.sh
+          set -e
           cmake -S . -B BUILDifx -DCMAKE_Fortran_COMPILER=ifx -DCMAKE_INSTALL_PREFIX=$(pwd)/../INSTALLifx
           cmake --build BUILDifx -j
           cmake --install BUILDifx
@@ -113,6 +139,65 @@ jobs:
     #       cmake --build BUILDifort -j
     #       cmake --install BUILDifort
     #       ctest --test-dir BUILDifort -j 2 --output-on-failure
+
+  compilejobRocky9_AOCC:
+    name: rockylinux9x86_64_AOCC
+    runs-on: ubuntu-latest
+    container:
+        image: rockylinux:9
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3    
+    - name: Install 
+      run: |
+           dnf -y install dnf*
+           dnf -y config-manager --set-enabled crb
+           dnf -y install epel-release      
+           yum -y install  gcc gcc-c++ make wget which cmake cmake-data cmake-filesystem lhapdf lhapdf-devel libquadmath-devel libquadmath
+           yum -y install https://download.amd.com/developer/eula/aocc/aocc-5-0/aocc-compiler-5.0.0-1.x86_64.rpm
+    - name: Compile
+      continue-on-error: false    
+      run: |
+           source /opt/AMD/aocc-compiler-5.0.0/setenv_AOCC.sh 
+           export PATH=$PATH:/opt/AMD/aocc-compiler-5.0.0/bin/ 
+           set -e
+           cmake -S . -B BUILD  -DCMAKE_Fortran_COMPILER=flang -DCMAKE_INSTALL_PREFIX=$(pwd)/../INSTALL
+           cmake --build BUILD -j
+           cmake --install BUILD
+           ctest --test-dir BUILD -j 2 --output-on-failure
+
+    - uses: actions/upload-artifact@v4
+      with:
+          name: AOCC
+          path: BUILD/example_f*/*.this_output
+
+  compilejobRocky9_NVHPC:
+    name: rockylinux9x86_64_NVHPC
+    runs-on: ubuntu-latest
+    container:
+        image: nvcr.io/nvidia/nvhpc:24.11-devel-cuda12.6-rockylinux9
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Install 
+      run: |
+           dnf -y install dnf*
+           dnf -y config-manager --set-enabled crb
+           dnf -y install epel-release      
+           yum -y install  gcc gcc-c++ make wget which cmake cmake-data cmake-filesystem lhapdf lhapdf-devel
+    - name: Compile
+      continue-on-error: false    
+      run: |
+          set -e      
+          cmake -S . -B BUILD  -DCMAKE_Fortran_COMPILER=nvfortran -DCMAKE_INSTALL_PREFIX=$(pwd)/../INSTALL
+          cmake --build BUILD -j
+          cmake --install BUILD
+          ctest --test-dir BUILD -j 2 --output-on-failure
+    - uses: actions/upload-artifact@v4
+      with:
+          name: NVHPC
+          path: BUILD/example_f*/*.this_output
+
 
   compilejobCentos7_IBM_XL:
     # to try this locally, run:
@@ -145,10 +230,98 @@ jobs:
           export PATH=/opt/ibm/xlf/16.1.1/bin/:$PATH
           export LICENSE=accept 
           xlf_configure <<< 1 >/dev/null
+          set -e
           cmake3 -S . -B BUILDxlf -DCMAKE_Fortran_COMPILER=xlf -DCMAKE_INSTALL_PREFIX=$(pwd)/../INSTALLxlf
           cmake3 --build BUILDxlf -j
           cmake3 --install BUILDxlf
           ctest3 --test-dir BUILDxlf -j 2 --output-on-failure
+
+
+  compilejobRocky9_ARM:
+    name: rockylinux9aarch64_ARM
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: QEMU
+      run: |
+           set -x
+           sudo apt update
+           sudo  apt install --yes binfmt-support qemu-user-static wget
+    - name: Compile_with_arm
+      continue-on-error: false     
+      uses: addnab/docker-run-action@v3
+      with:
+        image: arm64v8/rockylinux:9
+        options: -v ${{ github.workspace }}:/work --platform=linux/arm64/v8
+        run: |
+          dnf -y install dnf*
+          yum -y install epel-release wget 
+          yum -y install procps  lhapdf-devel wget glibc-devel cmake environment-modules which
+          wget -q https://developer.arm.com/-/cdn-downloads/permalink/Arm-Compiler-for-Linux/Version_24.10.1/arm-compiler-for-linux_24.10.1_RHEL-9_aarch64.tar
+          tar -xvf arm-compiler-for-linux_24.10.1_RHEL-9_aarch64.tar
+          cd arm-compiler-for-linux_24.10.1_RHEL-9
+          sh ./arm-compiler-for-linux_24.10.1_RHEL-9.sh -a
+          source /etc/profile.d/modules.sh
+          export MODULEPATH=$MODULEPATH:/opt/arm/modulefiles/
+          module load acfl/24.10.1
+          module load gnu/14.2.0
+          cd ..
+          cd work
+          set -e
+          cmake -S . -B BUILDarmflang -DCMAKE_Fortran_COMPILER=armflang -DCMAKE_INSTALL_PREFIX=$(pwd)/../INSTALLarmflang
+          cmake --build BUILDarmflang -j
+          cmake --install BUILDarmflang
+          ctest --test-dir BUILDarmflang -j 2 --output-on-failure
+    - uses: actions/upload-artifact@v4
+      with:
+          name: ARM
+          path: BUILDarmflang/example_f*/*.this_output
+
+
+
+  compilejobRocky9_ARM_2310:
+    name: rockylinux9aarch64_ARM_2310
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: QEMU
+      run: |
+           set -x
+           sudo apt update
+           sudo  apt install --yes binfmt-support qemu-user-static wget
+    - name: Compile_with_arm
+      continue-on-error: false     
+      uses: addnab/docker-run-action@v3
+      with:
+        image: arm64v8/rockylinux:9
+        options: -v ${{ github.workspace }}:/work --platform=linux/arm64/v8
+        run: |
+          dnf -y install dnf*
+          yum -y install epel-release wget 
+          yum -y install procps  lhapdf-devel wget glibc-devel cmake environment-modules which
+          wget -q https://armkeil.blob.core.windows.net/developer/Files/downloads/hpc/arm-compiler-for-linux/23-10/arm-compiler-for-linux_23.10_RHEL-9_aarch64.tar
+          tar -xvf arm-compiler-for-linux_23.10_RHEL-9_aarch64.tar
+          cd arm-compiler-for-linux_23.10_RHEL-9
+          sh ./arm-compiler-for-linux_23.10_RHEL-9.sh -a
+          source /etc/profile.d/modules.sh
+          export MODULEPATH=$MODULEPATH:/opt/arm/modulefiles/
+          module load acfl/23.10
+          module load gnu/12.2.0
+          cd ..
+          cd work
+          set -e          
+          cmake -S . -B BUILDarmflang -DCMAKE_Fortran_COMPILER=armflang -DCMAKE_INSTALL_PREFIX=$(pwd)/../INSTALLarmflang
+          cmake --build BUILDarmflang -j
+          cmake --install BUILDarmflang
+          ctest --test-dir BUILDarmflang -j 2 --output-on-failure
+    - uses: actions/upload-artifact@v4
+      with:
+          name: ARM
+          path: BUILDarmflang/example_f*/*.this_output
+
+
 
   compilejobMacOS:
     runs-on: macos-latest
@@ -165,6 +338,7 @@ jobs:
           ls /opt/homebrew/bin/gfortran*
     - name: Compile
       run: |
+          set -e      
           cmake -S . -B BUILD -DCMAKE_INSTALL_PREFIX=$(pwd)/../INSTALL -DCMAKE_Fortran_COMPILER=gfortran-14  -DHOPPET_ENABLE_FPES=ON -DCMAKE_BUILD_TYPE=Debug
           cmake --build BUILD -j 2
           cmake --install BUILD
