@@ -73,11 +73,9 @@ jobs:
            yum -y install  gcc gcc-c++ gcc-gfortran make wget which cmake cmake-data cmake-filesystem lhapdf lhapdf-devel
     - name: Compile
       run: |
-          set -e      
-          cmake -S . -B BUILD -DCMAKE_INSTALL_PREFIX=$(pwd)/../INSTALL -DHOPPET_ENABLE_FPES=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_Fortran_COMPILER=lfortran
-          cmake --build BUILD -j
-          cmake --install BUILD
-          ctest --test-dir BUILD -j 2 --output-on-failure
+            lfortran --version
+            lfortran cmake/Tests/array_bound_bug.f90 -o array_bound_bug.exe
+            ./array_bound_bug.exe
 
   compilejobRocky9x86_64_GNU:
     name: rockylinux9x86_64_GNU
