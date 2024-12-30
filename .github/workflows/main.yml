@@ -60,7 +60,7 @@ jobs:
 
 
   compilejobRocky9x86_64_GNU:
-    name: Fedorax86_64_GNU
+    name: Rocky9x86_64_GNU
     runs-on: ubuntu-latest
     container:
         image: rockylinux:9
@@ -69,6 +69,7 @@ jobs:
       uses: actions/checkout@v3
     - name: Install 
       run: |
+           dnf -y install dnf*
            dnf -y config-manager --set-enabled crb
            dnf -y install epel-release
            yum -y install  gcc gcc-c++ gcc-gfortran make wget which cmake cmake-data cmake-filesystem lhapdf lhapdf-devel
@@ -87,6 +88,7 @@ jobs:
     - uses: actions/checkout@v3
     - name: Install
       run: |
+             dnf -y install dnf*
              dnf -y config-manager --set-enabled crb
              dnf -y install epel-release      
              dnf -y install findutils procps gcc gcc-c++ gcc-gfortran make wget which cmake cmake-data cmake-filesystem lhapdf lhapdf-devel
@@ -128,6 +130,7 @@ jobs:
       uses: actions/checkout@v3    
     - name: Install 
       run: |
+           dnf -y install dnf*
            dnf -y config-manager --set-enabled crb
            dnf -y install epel-release      
            yum -y install  gcc gcc-c++ make wget which cmake cmake-data cmake-filesystem lhapdf lhapdf-devel libquadmath-devel libquadmath
@@ -157,6 +160,7 @@ jobs:
       uses: actions/checkout@v3
     - name: Install 
       run: |
+           dnf -y install dnf*
            dnf -y config-manager --set-enabled crb
            dnf -y install epel-release      
            yum -y install  gcc gcc-c++ make wget which cmake cmake-data cmake-filesystem lhapdf lhapdf-devel
@@ -228,6 +232,7 @@ jobs:
         image: arm64v8/rockylinux:9
         options: -v ${{ github.workspace }}:/work --platform=linux/arm64/v8
         run: |
+          dnf -y install dnf*
           yum -y install epel-release wget 
           yum -y install procps  lhapdf-devel wget glibc-devel cmake environment-modules which
           wget -q https://developer.arm.com/-/cdn-downloads/permalink/Arm-Compiler-for-Linux/Version_24.10.1/arm-compiler-for-linux_24.10.1_RHEL-9_aarch64.tar

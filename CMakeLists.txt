@@ -284,6 +284,8 @@ if (HOPPET_BUILD_EXAMPLES)
   endforeach()
   if (HOPPET_ENABLE_TESTING)
     ENABLE_TESTING()
+    add_executable(GStest tests/GStest.f90)
+    add_test( NAME BoundariesCheck COMMAND GStest)
     set( execs 
     tabulation_example 
     #tabulation_example_up_and_down 
