@@ -1,3 +1,71 @@
+2024-12-30 Mon  <gavin.salam@physics.ox.ac.uk>
+
+	* CMakeLists.txt:
+	* cmake/Tests/array_bound_bug.f90: *** ADDED ***
+
+	defined a variable with a common warning message for compilers with
+	the array bounds bug, including a link to the nvidia fortran bug
+	report and added an explicit test for the bug, which compiles and
+	runs array_bound_bug when cmake is invoked.
+
+	NB: this is left out for XLF, where it sometimes hangs and other
+	times seg faults in the CI. But this may be as much to 
+	do with the allocatable assignment as other things, because
+	ctest passes for XLF.
+
+2024-12-24 Tue  <gavin.salam@physics.ox.ac.uk>
+
+	* README.md:
+	updated section on examples and Fortran compilers.
+
+	* .github/workflows/main.yml:
+	- added gfortran 14 to the CI matrix
+	- updated name of MacOS test to reflect fact that it is no 
+	  longer running on intel + added output from unamea
+
+
+2024-11-29 Fri  <gavin.salam@physics.ox.ac.uk>
+
+	* ../src/pdf_tabulate.f90:
+	added PDFTableSetYInterpOrder(order), which sets a global
+	order for the interpolation of the y values in the PDF table.
+	Intended to allow investigation of speed an accuracy of 
+	interpolations that use fewer x points than the intrinsic
+	grid order (typically in conjunction with fewer lnlnQ points).
+	Some timing explicitly included in the code, in the EvalPdfTable_yQ 
+	function. Interface may evolve.
+
+	* ../benchmarking/prec_and_timing.f90:
+	added -yinterp I for controlling the y interpolation order
+	in PDF tables.
+
+	* CMakeLists.txt:
+	* benchmarking/test_acc/compare2files_v2.f90:
+	added CMake compilation of compare2files_v2.f90, and 
+	added a bit more documentation as part of the output.
+
+	* .github/workflows/main.yml:
+	turned off ifort because it's failing in CI
+
+	* src/convolution.f90:
+	WgtGridQuant_noalloc now takes an optional npnt_in argument, which,
+	if positive specifies the number of points to be used; plus some
+	small attempts at optimisation of the BestIsub routing 
+	(not clear if they have any impact; some parts still commented); 	
+
+	* benchmarking/io_utils.f90:
+	added get_hostname(hostname), using gethostname() from C, so 
+	that we can include the hostname in the output of Fortran
+	test programs.
+
+2024-08-05  Gavin Salam  <gavin.salam@physics.ox.ac.uk> + Alexander
+
+	* src/pdf_tabulate.f90:
+	fixed issue where get_lnlnQ_weights was giving an error when
+	trying to get the lnlnQ weight for a nf interval with a very
+	narrow range of Q values (below some threshold, the table
+	gets just a single entry).
+
 2024-05-17  Gavin Salam  
 
 	* src/welcome_message.f90:
@@ -47,7 +115,7 @@
 	a Mac M2.
 
 
- 2024-02-24  Gavin Salam  <gavin.salam@physics.ox.ac.uk>
+2024-02-24  Gavin Salam  <gavin.salam@physics.ox.ac.uk>
 
 	* src/integrator.f90:
 	fixed bug in array sizes for integral splitting.
