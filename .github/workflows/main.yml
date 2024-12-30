@@ -281,7 +281,7 @@ jobs:
 
 
   compilejobRocky9_ARM_2310:
-    name: rockylinux9aarch64_ARM
+    name: rockylinux9aarch64_ARM_2310
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
