@@ -59,6 +59,26 @@ jobs:
 
 
 
+  compilejobFedora41x86_64_LFortran:
+    name: Fedora41x86_64_LFortran
+    runs-on: ubuntu-latest
+    container:
+        image: fedora:41
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Install 
+      run: |
+           dnf -y install dnf* lfortran
+           yum -y install  gcc gcc-c++ gcc-gfortran make wget which cmake cmake-data cmake-filesystem lhapdf lhapdf-devel
+    - name: Compile
+      run: |
+          set -e      
+          cmake -S . -B BUILD -DCMAKE_INSTALL_PREFIX=$(pwd)/../INSTALL -DHOPPET_ENABLE_FPES=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_Fortran_COMPILER=lfortran
+          cmake --build BUILD -j
+          cmake --install BUILD
+          ctest --test-dir BUILD -j 2 --output-on-failure
+
   compilejobRocky9x86_64_GNU:
     name: rockylinux9x86_64_GNU
     runs-on: ubuntu-latest
@@ -259,6 +279,51 @@ jobs:
       with:
           name: ARM
           path: BUILDarmflang/example_f*/*.this_output
+
+
+
+  compilejobRocky9_ARM_2310:
+    name: rockylinux9aarch64_ARM
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: QEMU
+      run: |
+           set -x
+           sudo apt update
+           sudo  apt install --yes binfmt-support qemu-user-static wget
+    - name: Compile_with_arm
+      continue-on-error: false     
+      uses: addnab/docker-run-action@v3
+      with:
+        image: arm64v8/rockylinux:9
+        options: -v ${{ github.workspace }}:/work --platform=linux/arm64/v8
+        run: |
+          dnf -y install dnf*
+          yum -y install epel-release wget 
+          yum -y install procps  lhapdf-devel wget glibc-devel cmake environment-modules which
+          wget -q https://armkeil.blob.core.windows.net/developer/Files/downloads/hpc/arm-compiler-for-linux/23-10/arm-compiler-for-linux_23.10_RHEL-9_aarch64.tar
+          tar -xvf arm-compiler-for-linux_23.10_RHEL-9_aarch64.tar
+          cd arm-compiler-for-linux_23.10_RHEL-9
+          sh ./arm-compiler-for-linux_23.10_RHEL-9.sh -a
+          source /etc/profile.d/modules.sh
+          export MODULEPATH=$MODULEPATH:/opt/arm/modulefiles/
+          module load acfl/23.10
+          module load gnu/12.2.0
+          cd ..
+          cd work
+          set -e          
+          cmake -S . -B BUILDarmflang -DCMAKE_Fortran_COMPILER=armflang -DCMAKE_INSTALL_PREFIX=$(pwd)/../INSTALLarmflang
+          cmake --build BUILDarmflang -j
+          cmake --install BUILDarmflang
+          ctest --test-dir BUILDarmflang -j 2 --output-on-failure
+    - uses: actions/upload-artifact@v4
+      with:
+          name: ARM
+          path: BUILDarmflang/example_f*/*.this_output
+
+
 
   compilejobMacOS:
     runs-on: macos-latest
