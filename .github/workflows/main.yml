@@ -60,7 +60,7 @@ jobs:
 
 
   compilejobRocky9x86_64_GNU:
-    name: Rocky9x86_64_GNU
+    name: rockylinux9x86_64_GNU
     runs-on: ubuntu-latest
     container:
         image: rockylinux:9
@@ -75,13 +75,14 @@ jobs:
            yum -y install  gcc gcc-c++ gcc-gfortran make wget which cmake cmake-data cmake-filesystem lhapdf lhapdf-devel
     - name: Compile
       run: |
+          set -e      
           cmake -S . -B BUILD -DCMAKE_INSTALL_PREFIX=$(pwd)/../INSTALL -DHOPPET_ENABLE_FPES=ON -DCMAKE_BUILD_TYPE=Debug
           cmake --build BUILD -j
           cmake --install BUILD
           ctest --test-dir BUILD -j 2 --output-on-failure
 
   compilejobRocky9x86_64_Intel_HPCKIT:
-    name: Rocly9x86_64_Intel_HPCKIT
+    name: rockylinux9x86_64_Intel_HPCKIT
     runs-on: ubuntu-latest
     container: rockylinux:9
     steps:
@@ -101,13 +102,14 @@ jobs:
              repo_gpgcheck=1
              gpgkey=https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
              EOF
-             sudo mv /tmp/oneAPI.repo /etc/yum.repos.d/
+             mv /tmp/oneAPI.repo /etc/yum.repos.d/
              dnf -y clean all
              dnf -y install  intel-oneapi-compiler-dpcpp-cpp intel-oneapi-compiler-fortran
              source /opt/intel/oneapi/compiler/latest/env/vars.sh
     - name: Compile_with_ifx
       run: |
           source /opt/intel/oneapi/compiler/latest/env/vars.sh
+          set -e
           cmake -S . -B BUILDifx -DCMAKE_Fortran_COMPILER=ifx -DCMAKE_INSTALL_PREFIX=$(pwd)/../INSTALLifx
           cmake --build BUILDifx -j
           cmake --install BUILDifx
@@ -121,7 +123,7 @@ jobs:
     #       ctest --test-dir BUILDifort -j 2 --output-on-failure
 
   compilejobRocky9_AOCC:
-    name: Rocky9x86_64_AOCC
+    name: rockylinux9x86_64_AOCC
     runs-on: ubuntu-latest
     container:
         image: rockylinux:9
@@ -136,10 +138,11 @@ jobs:
            yum -y install  gcc gcc-c++ make wget which cmake cmake-data cmake-filesystem lhapdf lhapdf-devel libquadmath-devel libquadmath
            yum -y install https://download.amd.com/developer/eula/aocc/aocc-5-0/aocc-compiler-5.0.0-1.x86_64.rpm
     - name: Compile
-      continue-on-error: true    
+      continue-on-error: false    
       run: |
            source /opt/AMD/aocc-compiler-5.0.0/setenv_AOCC.sh 
            export PATH=$PATH:/opt/AMD/aocc-compiler-5.0.0/bin/ 
+           set -e
            cmake -S . -B BUILD  -DCMAKE_Fortran_COMPILER=flang -DCMAKE_INSTALL_PREFIX=$(pwd)/../INSTALL
            cmake --build BUILD -j
            cmake --install BUILD
@@ -151,7 +154,7 @@ jobs:
           path: BUILD/example_f*/*.this_output
 
   compilejobRocky9_NVHPC:
-    name: Rocky9x86_64_NVHPC
+    name: rockylinux9x86_64_NVHPC
     runs-on: ubuntu-latest
     container:
         image: nvcr.io/nvidia/nvhpc:24.11-devel-cuda12.6-rockylinux9
@@ -165,8 +168,9 @@ jobs:
            dnf -y install epel-release      
            yum -y install  gcc gcc-c++ make wget which cmake cmake-data cmake-filesystem lhapdf lhapdf-devel
     - name: Compile
-      continue-on-error: true    
+      continue-on-error: false    
       run: |
+          set -e      
           cmake -S . -B BUILD  -DCMAKE_Fortran_COMPILER=nvfortran -DCMAKE_INSTALL_PREFIX=$(pwd)/../INSTALL
           cmake --build BUILD -j
           cmake --install BUILD
@@ -208,6 +212,7 @@ jobs:
           export PATH=/opt/ibm/xlf/16.1.1/bin/:$PATH
           export LICENSE=accept 
           xlf_configure <<< 1 >/dev/null
+          set -e
           cmake3 -S . -B BUILDxlf -DCMAKE_Fortran_COMPILER=xlf -DCMAKE_INSTALL_PREFIX=$(pwd)/../INSTALLxlf
           cmake3 --build BUILDxlf -j
           cmake3 --install BUILDxlf
@@ -215,7 +220,7 @@ jobs:
 
 
   compilejobRocky9_ARM:
-    name: Rocky9aarch64_ARM
+    name: rockylinux9aarch64_ARM
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -226,7 +231,7 @@ jobs:
            sudo apt update
            sudo  apt install --yes binfmt-support qemu-user-static wget
     - name: Compile_with_arm
-      continue-on-error: true     
+      continue-on-error: false     
       uses: addnab/docker-run-action@v3
       with:
         image: arm64v8/rockylinux:9
@@ -245,6 +250,7 @@ jobs:
           module load gnu/14.2.0
           cd ..
           cd work
+          set -e
           cmake -S . -B BUILDarmflang -DCMAKE_Fortran_COMPILER=armflang -DCMAKE_INSTALL_PREFIX=$(pwd)/../INSTALLarmflang
           cmake --build BUILDarmflang -j
           cmake --install BUILDarmflang
@@ -269,6 +275,7 @@ jobs:
           ls /opt/homebrew/bin/gfortran*
     - name: Compile
       run: |
+          set -e      
           cmake -S . -B BUILD -DCMAKE_INSTALL_PREFIX=$(pwd)/../INSTALL -DCMAKE_Fortran_COMPILER=gfortran-14  -DHOPPET_ENABLE_FPES=ON -DCMAKE_BUILD_TYPE=Debug
           cmake --build BUILD -j 2
           cmake --install BUILD
