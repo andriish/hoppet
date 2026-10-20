@@ -262,6 +262,8 @@ endif()
 # Sources ==============================================================
 file(GLOB SOURCESf90 src/*.f90 src/*.F90 src/splitting-functions/*.f90 src/mass-thresholds-nnlo/xa2hgp.f90)
 file(GLOB SOURCESf src/*.f src/splitting-functions/*.f src/param-coefs/*.f)
+file(GLOB SOURCESCXX CONFIGURE_DEPENDS src/*.cc src/*.cpp src/math/*.cc src/math/*.cpp)
+list(APPEND SOURCESCXX "${PROJECT_SOURCE_DIR}/src/math/loglogapprox.cc")
 
 if (HOPPET_ENABLE_N3LO_FORTRAN_MTM)
   file(GLOB N3LOMTMF90 src/mass-thresholds/*.f90)
@@ -496,15 +498,20 @@ if (HOPPET_BUILD_EXAMPLES)
      )
   endforeach()
   if (LHAPDF_FOUND)
-    set(cppprograms_lhapdf lhapdf_to_hoppet)
+    set(cppprograms_lhapdf lhapdf_to_hoppet lhapdf_pdf_performance)
+    # Fortran sources providing direct (LHAPDF-independent) reading of LHAPDF
+    # grid files; only needed by the with-lhapdf C++ examples.
+    set(lhapdf_grid_reader_sources
+      examples/cpp/with-lhapdf/pdf_c_interface.f90)
     foreach ( p ${cppprograms_lhapdf})
-      add_executable( ${p}_cpp examples/cpp/with-lhapdf/${p}.cc)
+      add_executable( ${p}_cpp examples/cpp/with-lhapdf/${p}.cc ${lhapdf_grid_reader_sources})
       target_include_directories(${p}_cpp PUBLIC ${PROJECT_SOURCE_DIR}/src)
       target_link_libraries(${p}_cpp PUBLIC hoppet::hoppet_static PUBLIC LHAPDF::LHAPDF)
       set_target_properties(${p}_cpp PROPERTIES  OUTPUT_NAME ${p}
                             RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/examples/cpp/
-                            Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/examples/cpp/
+                            Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/examples/cpp/modules/${p}_modules
                             POSITION_INDEPENDENT_CODE TRUE
+                            LINKER_LANGUAGE CXX
       )
     endforeach()
   endif()  
