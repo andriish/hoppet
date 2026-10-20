@@ -35,6 +35,7 @@ module pdf_tabulate
   !use pdf_tabulate_types
   !-- needed only for EvolvePdfTable [separate it out one day?]
   use qcd_coupling; use evolution; use dglap_holders
+  use, intrinsic :: iso_c_binding, only: c_double
   implicit none
   private
 
@@ -50,7 +51,7 @@ module pdf_tabulate
     logical :: allocated = .false.
     type(grid_def) :: grid
     real(dp) :: default_dlnlnQ
-    real(dp) :: lnlnQ_min, lnlnQ_max, lambda_eff
+    real(dp) :: lnlnQ_min, lnlnQ_max, lambda_eff, lambda_eff_inv
     real(dp), pointer :: tab(:,:,:)
     real(dp), pointer :: lnlnQ_vals(:), Q_vals(:)
     integer :: nQ, lnlnQ_order
@@ -221,6 +222,13 @@ module pdf_tabulate
 
   public :: EvalPdfTable_yQ_interface, EvalPdfTable_yQf_interface, EvalPdfTable1D_yQ_interface
 
+  interface
+    real(c_double) function loglog_c(x) bind(c, name='loglog')
+      import :: c_double
+      real(c_double), value :: x
+    end function loglog_c
+  end interface
+
 contains
 
   !---------------------------------------------------------
@@ -255,6 +263,7 @@ contains
 
     tab%grid = grid
     tab%lambda_eff = min(half*Qmin, default_lambda_eff)
+    tab%lambda_eff_inv = 1.0/tab%lambda_eff
     tab%lnlnQ_min = lnln(tab,Qmin)
     tab%lnlnQ_max = lnln(tab,Qmax)
 
@@ -1901,7 +1910,6 @@ contains
     end if
   end subroutine request_iQrange
   
-
   !-------------------------------------
   !! conversion from Q to lnlnQ
   function lnln(tab,Q)
@@ -1912,7 +1920,8 @@ contains
     if (Q < tab%lambda_eff) then
        lnln = -1e300_dp
     else
-       lnln = log(log(Q/tab%lambda_eff))
+       !lnln = real(loglog_c(real(Q*tab%lambda_eff_inv, c_double)), kind=dp)
+       lnln = log(log(Q*tab%lambda_eff_inv))
     end if
   end function lnln
 

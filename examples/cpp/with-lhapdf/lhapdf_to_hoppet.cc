@@ -7,18 +7,22 @@
 ///
 #include "hoppet.h"
 #include "LHAPDF/LHAPDF.h"
+#include "lhapdf_c_api.h"
 #include <iostream>
 #include <cmath>
 #include <cstdio>
 #include <chrono>
+#include <cstring>
 
 using namespace std;
 using namespace hoppet; // To access factscheme_MSbar
 using namespace LHAPDF;
 
 
-// Global PDF pointer
-PDF *pdf = nullptr;
+// Global PDF pointers.
+LHAPDF::PDF *pdf = nullptr;                 // LHAPDF PDF used for xfxQ2 and asalphasQ
+HOPPETPDF::InitialPDF *hoppet_pdf = nullptr; // HOPPETPDF wrapper used for metadata/grid access
+
 
 /// Interface to LHAPDF as needed by hoppetAssign
 void lhapdf_interface(const double & x, const double & Q, double * res)  {
@@ -27,18 +31,35 @@ void lhapdf_interface(const double & x, const double & Q, double * res)  {
   copy(data.begin(), data.end(), res); // Fast copy to the output array
 };
 
+/// Interface that supplies PDF values from the wrapper-backed .dat grid.
+/// The flavour ordering matches LHAPDF's convention (-6 … +6).
+static void hoppet_interface(const double & x, const double & Q, double * res) {
+  std::vector<double> vals(13, 0.0);
+  hoppet_pdf->xfxQ2(x, Q*Q, vals);
+  std::copy(vals.begin(), vals.end(), res);
+}
+
 /// Routine that loads an LHAPDF set, extracts some information from it
 /// and transfers the PDF to hoppet. It needs the lhapdf_interface
 /// defined above.
 void load_lhapdf_assign_hoppet(const string & pdfname, int imem=0) {
-  // Start by loading a PDF set from LHAPDF
+
+
+
+  // Start by loading a PDF set from LHAPDF for the direct xfxQ2 evaluation path.
   auto t1 = chrono::high_resolution_clock::now();
   pdf = mkPDF(pdfname, imem);
   auto t2 = chrono::high_resolution_clock::now();
   cout << "Time to load LHAPDF set: " << chrono::duration<double,milli>(t2 - t1).count() << " ms" << endl;
 
-  // Now let's access some basic information about the PDF to set up hoppet
-  int nloop = pdf->orderQCD() + 1; // LHAPDF is zero indexed
+  // Keep the C++ wrapper object as a global pointer for the direct metadata/grid API.
+  t1 = chrono::high_resolution_clock::now();
+  hoppet_pdf = HOPPETPDF::mkInitialPDF(pdfname, imem);
+  t2 = chrono::high_resolution_clock::now();
+  cout << "Time to load HOPPETPDF wrapper: " << chrono::duration<double,milli>(t2 - t1).count() << " ms" << endl;
+
+  // Now let's access some basic information about the PDF to set up hoppet.
+  int nloop = pdf->orderQCD() + 1; // Wrapper is zero indexed as the LHAPDF interface.
   double xmin = pdf->xMin();
   double xmax = pdf->xMax();
   double Qmin = pdf->qMin();
@@ -48,7 +69,34 @@ void load_lhapdf_assign_hoppet(const string & pdfname, int imem=0) {
   double mt = pdf->quarkMass(6);
   if(!pdf->hasFlavor(6)) mt = 2.0*Qmax; // If no top mass defined, use 173 GeV
 
+
+  int hoppet_nloop = hoppet_pdf->orderQCD() + 1; // Wrapper is zero indexed as the LHAPDF interface.
+  double hoppet_xmin = hoppet_pdf->xMin();
+  double hoppet_xmax = hoppet_pdf->xMax();
+  double hoppet_Qmin = hoppet_pdf->qMin();
+  double hoppet_Qmax = hoppet_pdf->qMax();
+  double hoppet_mc = hoppet_pdf->quarkMass(4);
+  double hoppet_mb = hoppet_pdf->quarkMass(5);
+  double hoppet_mt = hoppet_pdf->quarkMass(6);
+  if(!hoppet_pdf->hasFlavor(6)) hoppet_mt = 2.0*hoppet_Qmax; // If no top mass defined, use 173 GeV
+
+  // Compare the values obtained from the PDF info struct with those from LHAPDF
+  // Directly use the fields of the `pdf_metadata_t` struct populated earlier.
+  auto print_compare = [&](const char* name, double lh_val, double info_val){
+    std::cout << "[COMPARE] " << name << " LHAPDF=" << lh_val << " info=" << info_val
+              << " diff=" << (lh_val - info_val) << std::endl;
+  };
+  print_compare("XMin",   xmin,   hoppet_xmin);
+  print_compare("XMax",   xmax,   hoppet_xmax);
+  print_compare("QMin",   Qmin,   hoppet_Qmin);
+  print_compare("QMax",   Qmax,   hoppet_Qmax);
+  print_compare("MCharm", mc,     hoppet_mc);
+  print_compare("MBottom", mb,    hoppet_mb);
+  print_compare("MTop",   mt,     hoppet_mt);
+
   cout << "LHAPDF set: " << pdfname << " loaded successfully" << endl;
+
+  
 
   // Now let us define some hoppet specific parameters. These are
   // typical values, and should guarantee similar accuracy as can be
@@ -75,6 +123,7 @@ void load_lhapdf_assign_hoppet(const string & pdfname, int imem=0) {
   cout << " yorder:     " << yorder << endl;
   cout << " lnlnQorder: " << lnlnQorder << endl;
 
+  
   hoppetSetPoleMassVFN(mc,mb,mt); // set the pole masses
   hoppetSetYLnlnQInterpOrders(yorder, lnlnQorder); // Set the interpolation orders
   t1 = chrono::high_resolution_clock::now();
@@ -85,9 +134,13 @@ void load_lhapdf_assign_hoppet(const string & pdfname, int imem=0) {
   // Now we fill the hoppet grid using the LHAPDF grid directly,
   // rather than evolving ourselves
   double Q0 = Qmin;
-  hoppetSetCoupling(pdf->alphasQ(Q0), Q0, nloop);
+  hoppetSetCoupling(hoppet_pdf->alphasQ(Q0), Q0, nloop);
   t1 = chrono::high_resolution_clock::now();
-  hoppetAssign(lhapdf_interface);
+  //hoppetAssign(lhapdf_interface);
+
+
+  hoppetAssign(hoppet_interface);
+  
   t2 = chrono::high_resolution_clock::now();
   cout << "Time to fill hoppet grid from LHAPDF: " << chrono::duration<double,milli>(t2 - t1).count() << " ms" << endl;
 
@@ -189,6 +242,8 @@ int main (int argc, char *argv[]) {
   t2 = chrono::high_resolution_clock::now();
   cout << "LHAPDF alphasQ time: " << chrono::duration<double,nano>(t2 - t1).count()/npoints << " ns\n";
 
+  delete hoppet_pdf;
+  hoppet_pdf = nullptr;
   hoppetDeleteAll();
 
 }
