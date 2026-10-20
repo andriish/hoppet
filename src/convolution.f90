@@ -67,7 +67,7 @@ module convolution
   !! Definition of a grid.
   !! Includes possibility of one layer of subsidiary definitions.
   type grid_def
-     real(dp) :: dy, ymax, eps 
+     real(dp) :: dy, ymax, eps
      integer  :: ny, order, nsub = 0
      logical  :: locked
      integer,        pointer :: subiy(:) => null() ! starting points of subsidiary grid
